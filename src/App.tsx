@@ -56,16 +56,34 @@ export default function App() {
   const [username, setUsername] = useState<string | null>(null);
   const [tempUsername, setTempUsername] = useState('');
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
   const [coins, setCoins] = useState(0);
 
-  // Load username from localStorage
+  // Load username from localStorage and simulate progress
   useEffect(() => {
     const savedUser = localStorage.getItem('verseUser');
-    if (savedUser) {
-      setUsername(savedUser);
-    }
-    setIsLoadingUser(false);
+    
+    const interval = setInterval(() => {
+      setLoadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          if (savedUser) setUsername(savedUser);
+          setIsLoadingUser(false);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const skipLoading = () => {
+    const savedUser = localStorage.getItem('verseUser');
+    if (savedUser) setUsername(savedUser);
+    setIsLoadingUser(false);
+    setLoadProgress(100);
+  };
   const [walletBalance, setWalletBalance] = useState(100);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -131,15 +149,43 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10001] bg-[#0d1117] flex flex-col items-center justify-center p-6"
+            className="fixed inset-0 z-[10001] bg-gradient-to-br from-[#020617] to-[#0f172a] flex flex-col items-center justify-center p-6"
           >
-            <img 
-              src="https://i.ibb.co.com/KpD8qQk3/9i4nkq.jpg" 
-              alt="Verse Loading" 
-              className="w-16 h-16 animate-pulse !block mb-4"
-              referrerPolicy="no-referrer"
-            />
-            <div className="text-yellow-500 font-mono tracking-tighter text-sm animate-bounce">SYNCING WITH NETWORK...</div>
+            <div className="mb-8 text-center space-y-2">
+              <div className="text-3xl font-black text-blue-400 tracking-tighter">🎮 VERSE GAME HUB</div>
+              <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Initialization Phase</p>
+            </div>
+
+            {/* Spinner */}
+            <div className="relative w-16 h-16 mb-8">
+              <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
+              <div 
+                className="absolute inset-0 border-4 border-t-blue-400 rounded-full animate-spin"
+                style={{ animationDuration: '1s' }}
+              ></div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full max-w-[250px] space-y-3">
+              <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-blue-400 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${loadProgress}%` }}
+                />
+              </div>
+              <div className="flex justify-center">
+                <span className="text-blue-400 font-mono text-sm font-bold">{loadProgress}%</span>
+              </div>
+            </div>
+
+            {/* Skip Button */}
+            <button 
+              onClick={skipLoading}
+              className="mt-12 px-6 py-2 border border-blue-400 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-400 hover:text-black transition-all active:scale-95 uppercase tracking-widest"
+            >
+              Skip Intro
+            </button>
           </motion.div>
         ) : !username ? (
           <motion.div
