@@ -57,33 +57,44 @@ export default function App() {
   const [tempUsername, setTempUsername] = useState('');
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [coins, setCoins] = useState(0);
+  const [currentTip, setCurrentTip] = useState(0);
+  const loadingTips = [
+    "Tip: Collect coins to score more!",
+    "Tip: Avoid enemies to survive longer!",
+    "Tip: Use power-ups wisely!",
+    "Tip: Speed increases over time!"
+  ];
 
-  // Load username from localStorage and simulate progress
   useEffect(() => {
     const savedUser = localStorage.getItem('verseUser');
     
+    // 7 second duration loading simulation (step ≈ 1% every 70ms)
     const interval = setInterval(() => {
       setLoadProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
-          if (savedUser) setUsername(savedUser);
-          setIsLoadingUser(false);
+          setTimeout(() => {
+            if (savedUser) setUsername(savedUser);
+            setIsLoadingUser(false);
+          }, 500); // Small delay for transition
           return 100;
         }
-        return prev + 2;
+        return prev + 1;
       });
-    }, 50);
+    }, 70);
 
-    return () => clearInterval(interval);
+    // Tip rotation every 2 seconds
+    const tipInterval = setInterval(() => {
+      setCurrentTip(prev => (prev + 1) % loadingTips.length);
+    }, 2000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(tipInterval);
+    };
   }, []);
 
-  const skipLoading = () => {
-    const savedUser = localStorage.getItem('verseUser');
-    if (savedUser) setUsername(savedUser);
-    setIsLoadingUser(false);
-    setLoadProgress(100);
-  };
+  const [coins, setCoins] = useState(0);
   const [walletBalance, setWalletBalance] = useState(100);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -146,46 +157,47 @@ export default function App() {
         {isLoadingUser ? (
           <motion.div
             key="loader"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
             className="fixed inset-0 z-[10001] bg-gradient-to-br from-[#020617] to-[#0f172a] flex flex-col items-center justify-center p-6"
           >
-            <div className="mb-8 text-center space-y-2">
-              <div className="text-3xl font-black text-blue-400 tracking-tighter">🎮 VERSE GAME HUB</div>
-              <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Initialization Phase</p>
+            <div className="mb-8 text-center">
+              <div className="text-3xl font-black text-green-500 tracking-tighter">🎮 VERSE HUB</div>
             </div>
 
             {/* Spinner */}
-            <div className="relative w-16 h-16 mb-8">
+            <div className="relative w-[60px] h-[60px] mb-8">
               <div className="absolute inset-0 border-4 border-gray-800 rounded-full"></div>
               <div 
-                className="absolute inset-0 border-4 border-t-blue-400 rounded-full animate-spin"
+                className="absolute inset-0 border-4 border-t-green-500 rounded-full animate-spin"
                 style={{ animationDuration: '1s' }}
               ></div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="w-full max-w-[250px] space-y-3">
+            {/* Progress Bar Container */}
+            <div className="w-[220px] space-y-3">
               <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-blue-400 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${loadProgress}%` }}
+                <div 
+                  className="h-full bg-green-500 transition-all duration-100 ease-linear shadow-[0_0_15px_rgba(34,197,94,0.5)]"
+                  style={{ width: `${loadProgress}%` }}
                 />
               </div>
               <div className="flex justify-center">
-                <span className="text-blue-400 font-mono text-sm font-bold">{loadProgress}%</span>
+                <span className="text-white text-sm font-bold">{Math.floor(loadProgress)}%</span>
               </div>
             </div>
 
-            {/* Skip Button */}
-            <button 
-              onClick={skipLoading}
-              className="mt-12 px-6 py-2 border border-blue-400 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-400 hover:text-black transition-all active:scale-95 uppercase tracking-widest"
+            {/* Rotating Tips */}
+            <motion.div 
+              key={currentTip}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 0.8, y: 0 }}
+              className="mt-6 text-sm text-gray-300 text-center font-medium italic"
             >
-              Skip Intro
-            </button>
+              {loadingTips[currentTip]}
+            </motion.div>
           </motion.div>
         ) : !username ? (
           <motion.div
