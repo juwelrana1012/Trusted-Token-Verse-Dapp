@@ -58,17 +58,18 @@ export default function App() {
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [currentTip, setCurrentTip] = useState(0);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginStep, setLoginStep] = useState(0);
   const loadingTips = [
     "Tip: Collect coins to score more!",
     "Tip: Avoid enemies to survive longer!",
-    "Tip: Use power-ups wisely!",
-    "Tip: Speed increases over time!"
+    "Tip: Use power-ups wisely!"
   ];
 
   useEffect(() => {
     const savedUser = localStorage.getItem('verseUser');
     
-    // 7 second duration loading simulation (step ≈ 1% every 70ms)
+    // 2 second duration loading simulation (step 1% every 20ms)
     const interval = setInterval(() => {
       setLoadProgress(prev => {
         if (prev >= 100) {
@@ -76,17 +77,17 @@ export default function App() {
           setTimeout(() => {
             if (savedUser) setUsername(savedUser);
             setIsLoadingUser(false);
-          }, 500); // Small delay for transition
+          }, 300); // 300ms delay for transition
           return 100;
         }
         return prev + 1;
       });
-    }, 70);
+    }, 20);
 
-    // Tip rotation every 2 seconds
+    // Tip rotation every 1 second
     const tipInterval = setInterval(() => {
       setCurrentTip(prev => (prev + 1) % loadingTips.length);
-    }, 2000);
+    }, 1000);
 
     return () => {
       clearInterval(interval);
@@ -105,8 +106,13 @@ export default function App() {
     e.preventDefault();
     const cleanName = tempUsername.trim();
     if (cleanName) {
-      localStorage.setItem('verseUser', cleanName);
-      setUsername(cleanName);
+      setIsLoggingIn(true);
+      
+      setTimeout(() => {
+        localStorage.setItem('verseUser', cleanName);
+        setUsername(cleanName);
+        setIsLoggingIn(false);
+      }, 2000);
     }
   };
 
@@ -207,35 +213,61 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] bg-[#0d1117] flex items-center justify-center p-6 pt-[55px]"
           >
-            <div className="max-w-md w-full text-center space-y-8">
-              <img 
-                src="https://i.ibb.co.com/KpD8qQk3/9i4nkq.jpg" 
-                alt="Verse Logo" 
-                className="w-32 h-auto mx-auto !block"
-                referrerPolicy="no-referrer"
-              />
-              <div className="space-y-4">
-                <h2 className="text-3xl font-black text-white">Identity Access</h2>
-                <p className="text-gray-400">Enter your moniker to access the Verse Mini Hub</p>
-              </div>
-              <form onSubmit={handleStart} className="space-y-4">
-                <input 
-                  type="text" 
-                  value={tempUsername}
-                  onChange={(e) => setTempUsername(e.target.value)}
-                  placeholder="Username..."
-                  className="w-full bg-gray-900 border border-gray-800 rounded-2xl px-6 py-4 focus:border-yellow-500 outline-none transition-all text-center text-xl font-bold"
-                  autoFocus
-                />
-                <button 
-                  type="submit"
-                  disabled={!tempUsername.trim()}
-                  className="w-full py-4 bg-yellow-500 text-black font-bold rounded-2xl hover:bg-yellow-400 transition-all disabled:opacity-50"
+            <AnimatePresence mode="wait">
+              {isLoggingIn ? (
+                <motion.div
+                  key="logging-in"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="text-center space-y-6"
                 >
-                  Enter Hub
-                </button>
-              </form>
-            </div>
+                  <div className="relative w-16 h-16 mx-auto mb-4">
+                    <div className="absolute inset-0 border-4 border-yellow-500/20 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-yellow-500 rounded-full animate-spin"></div>
+                  </div>
+                  <h2 className="text-2xl font-black text-white italic uppercase tracking-widest animate-pulse">
+                    Logging in...
+                  </h2>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="login-form"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="max-w-md w-full text-center space-y-8"
+                >
+                  <img 
+                    src="https://i.ibb.co.com/KpD8qQk3/9i4nkq.jpg" 
+                    alt="Verse Logo" 
+                    className="w-32 h-auto mx-auto !block"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="space-y-4">
+                    <h2 className="text-3xl font-black text-white">Identity Access</h2>
+                    <p className="text-gray-400">Enter your moniker to access the Verse Mini Hub</p>
+                  </div>
+                  <form onSubmit={handleStart} className="space-y-4">
+                    <input 
+                      type="text" 
+                      value={tempUsername}
+                      onChange={(e) => setTempUsername(e.target.value)}
+                      placeholder="Username..."
+                      className="w-full bg-gray-900 border border-gray-800 rounded-2xl px-6 py-4 focus:border-yellow-500 outline-none transition-all text-center text-xl font-bold"
+                      autoFocus
+                    />
+                    <button 
+                      type="submit"
+                      disabled={!tempUsername.trim()}
+                      className="w-full py-4 bg-yellow-500 text-black font-bold rounded-2xl hover:bg-yellow-400 transition-all disabled:opacity-50"
+                    >
+                      Enter Hub
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <motion.div
