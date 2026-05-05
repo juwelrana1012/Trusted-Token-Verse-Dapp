@@ -17,19 +17,53 @@ import {
   Trophy,
   History,
   TrendingUp,
-  Zap
+  Zap,
+  ArrowRightLeft,
+  CandlestickChart,
+  Briefcase
 } from 'lucide-react';
 
 // --- Types ---
 type GameState = 'home' | 'clicker' | 'quiz' | 'wallet';
 
+interface Token {
+  id: string;
+  name: string;
+  symbol: string;
+  icon: string;
+  color: string;
+}
+
+interface MarketData {
+  price: number;
+  change24h: number;
+  sparkline: number[];
+}
+
 interface Transaction {
   id: string;
-  type: 'receive' | 'send' | 'earned';
+  type: 'receive' | 'send' | 'earned' | 'swap';
   amount: number;
+  symbol?: string; // Symbol for token transactions
   date: Date;
   description: string;
 }
+
+const SUPPORTED_TOKENS: Token[] = [
+  { id: 'verse-2', name: 'Verse', symbol: 'VERSE', icon: 'https://i.ibb.co.com/KpD8qQk3/9i4nkq.jpg', color: 'text-yellow-500' },
+  { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png', color: 'text-orange-500' },
+  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png', color: 'text-blue-400' },
+  { id: 'solana', name: 'Solana', symbol: 'SOL', icon: 'https://cryptologos.cc/logos/solana-sol-logo.png', color: 'text-purple-400' },
+  { id: 'binancecoin', name: 'BNB', symbol: 'BNB', icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.png', color: 'text-yellow-400' },
+  { id: 'cardano', name: 'Cardano', symbol: 'ADA', icon: 'https://cryptologos.cc/logos/cardano-ada-logo.png', color: 'text-blue-600' },
+  { id: 'polkadot', name: 'Polkadot', symbol: 'DOT', icon: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png', color: 'text-pink-500' },
+  { id: 'matic-network', name: 'Polygon', symbol: 'MATIC', icon: 'https://cryptologos.cc/logos/polygon-matic-logo.png', color: 'text-purple-600' },
+  { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE', icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png', color: 'text-yellow-600' },
+  { id: 'tether', name: 'Tether', symbol: 'USDT', icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png', color: 'text-teal-500' },
+  { id: 'litecoin', name: 'Litecoin', symbol: 'LTC', icon: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png', color: 'text-blue-300' },
+  { id: 'ripple', name: 'Ripple', symbol: 'XRP', icon: 'https://cryptologos.cc/logos/ripple-xrp-logo.png', color: 'text-slate-400' },
+  { id: 'chainlink', name: 'Chainlink', symbol: 'LINK', icon: 'https://cryptologos.cc/logos/chainlink-link-logo.png', color: 'text-blue-700' },
+];
 
 // --- Components ---
 
@@ -97,9 +131,101 @@ export default function App() {
 
   const [coins, setCoins] = useState(0);
   const [walletBalance, setWalletBalance] = useState(100);
+  const [tokenBalances, setTokenBalances] = useState<Record<string, number>>({
+    VERSE: 0,
+    BTC: 0,
+    ETH: 0,
+    SOL: 0,
+    BNB: 0,
+    ADA: 0,
+    DOT: 0,
+    MATIC: 0,
+    DOGE: 0,
+    USDT: 0,
+    LTC: 0,
+    XRP: 0,
+    LINK: 0
+  });
+  
+  const [marketData, setMarketData] = useState<Record<string, MarketData>>({
+    VERSE: { price: 0.05, change24h: 2.5, sparkline: Array(10).fill(0.05) },
+    BTC: { price: 65000, change24h: 0, sparkline: Array(10).fill(65000) },
+    ETH: { price: 3400, change24h: 0, sparkline: Array(10).fill(3400) },
+    SOL: { price: 145, change24h: 0, sparkline: Array(10).fill(145) },
+    BNB: { price: 580, change24h: 0, sparkline: Array(10).fill(580) },
+    ADA: { price: 0.45, change24h: 0, sparkline: Array(10).fill(0.45) },
+    DOT: { price: 7.2, change24h: 0, sparkline: Array(10).fill(7.2) },
+    MATIC: { price: 0.72, change24h: 0, sparkline: Array(10).fill(0.72) },
+    DOGE: { price: 0.15, change24h: 0, sparkline: Array(10).fill(0.15) },
+    USDT: { price: 1.0, change24h: 0, sparkline: Array(10).fill(1.0) },
+    LTC: { price: 80, change24h: 0, sparkline: Array(10).fill(80) },
+    XRP: { price: 0.60, change24h: 0, sparkline: Array(10).fill(0.60) },
+    LINK: { price: 18, change24h: 0, sparkline: Array(10).fill(18) },
+  });
+
   const [history, setHistory] = useState<Transaction[]>([]);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number }[]>([]);
   const [showLinks, setShowLinks] = useState(false);
+
+  // Market Price Simulation & Real Data Fetching
+  useEffect(() => {
+    if (gameState !== 'home' && gameState !== 'wallet') return;
+
+    const fetchRealPrices = async () => {
+      try {
+        const ids = SUPPORTED_TOKENS.filter(t => t.id !== 'verse-2').map(t => t.id).join(',');
+        const response = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
+        );
+        const data = await response.json();
+        
+        setMarketData(prev => {
+          const updated = { ...prev };
+          SUPPORTED_TOKENS.forEach(token => {
+            if (token.id === 'verse-2') return;
+            const coinData = data[token.id];
+            if (coinData) {
+              updated[token.symbol] = {
+                price: coinData.usd,
+                change24h: coinData.usd_24h_change || 0,
+                sparkline: [...(prev[token.symbol]?.sparkline || Array(10).fill(coinData.usd)).slice(1), coinData.usd]
+              };
+            }
+          });
+          return updated;
+        });
+      } catch (err) {
+        console.error("Failed to fetch real prices:", err);
+      }
+    };
+
+    // Initial fetch
+    fetchRealPrices();
+
+    const interval = setInterval(() => {
+      // Fetch real prices every 30 seconds to stay updated but respect rate limits
+      fetchRealPrices();
+
+      // Keep simulating Verse price locally as it's the game currency
+      setMarketData(prev => {
+        const newData = { ...prev };
+        const symbol = 'VERSE';
+        const change = (Math.random() - 0.45) * 0.008; // Slight upward bias for Verse
+        const newPrice = newData[symbol].price * (1 + change);
+        const newSparkline = [...newData[symbol].sparkline.slice(1), newPrice];
+        
+        newData[symbol] = {
+          ...newData[symbol],
+          price: newPrice,
+          change24h: newData[symbol].change24h + (change * 100),
+          sparkline: newSparkline
+        };
+        return newData;
+      });
+    }, 10000); // Check for updates and simulate Verse every 10s
+
+    return () => clearInterval(interval);
+  }, [gameState]);
 
   // Auto-focus the username input if it exists
   const handleStart = (e: FormEvent) => {
@@ -424,8 +550,25 @@ export default function App() {
           {gameState === 'wallet' && (
             <WalletSimulator 
               balance={walletBalance}
+              tokenBalances={tokenBalances}
+              marketData={marketData}
               history={history}
               onBack={() => setGameState('home')}
+              onSwap={(from, to, fromAmt, toAmt) => {
+                const hasBalance = from === 'USD' ? walletBalance >= fromAmt : (tokenBalances[from] || 0) >= fromAmt;
+                
+                if (hasBalance) {
+                  if (from === 'USD') setWalletBalance(prev => prev - fromAmt);
+                  else setTokenBalances(prev => ({ ...prev, [from]: prev[from] - fromAmt }));
+                  
+                  if (to === 'USD') setWalletBalance(prev => prev + toAmt);
+                  else setTokenBalances(prev => ({ ...prev, [to]: (prev[to] || 0) + toAmt }));
+                  
+                  addTransaction('swap', fromAmt, `Swapped ${fromAmt.toFixed(4)} ${from} for ${toAmt.toFixed(4)} ${to}`);
+                  return true;
+                }
+                return false;
+              }}
               onReceive={(amt) => {
                 setWalletBalance(prev => prev + amt);
                 addTransaction('receive', amt, 'External Credit');
@@ -779,14 +922,71 @@ function QuizGame({ onBack, onWin }: { onBack: () => void; onWin: (bonus: number
   );
 }
 
-function WalletSimulator({ balance, history, onBack, onReceive, onSend }: { 
+function WalletSimulator({ 
+  balance, 
+  tokenBalances, 
+  marketData, 
+  history, 
+  onBack, 
+  onReceive, 
+  onSend,
+  onSwap
+}: { 
   balance: number; 
+  tokenBalances: Record<string, number>;
+  marketData: Record<string, MarketData>;
   history: Transaction[];
   onBack: () => void;
   onReceive: (amt: number) => void;
   onSend: (amt: number) => boolean;
+  onSwap: (from: string, to: string, fromAmt: number, toAmt: number) => boolean;
 }) {
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'market' | 'swap'>('portfolio');
+  const [swapFrom, setSwapFrom] = useState<'USD' | string>('USD');
+  const [swapTo, setSwapTo] = useState<string>('VERSE');
+  const [swapAmount, setSwapAmount] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+
+  const getAvailableBalance = () => {
+    if (swapFrom === 'USD') return balance;
+    return tokenBalances[swapFrom] || 0;
+  };
+
+  const setMaxBalance = () => {
+    setSwapAmount(getAvailableBalance().toString());
+  };
+
+  const getEstimatedReturn = () => {
+    const amt = parseFloat(swapAmount);
+    if (isNaN(amt) || amt <= 0) return 0;
+
+    let usdValue = 0;
+    if (swapFrom === 'USD') {
+      usdValue = amt;
+    } else {
+      usdValue = amt * marketData[swapFrom].price;
+    }
+
+    if (swapTo === 'USD') {
+      return usdValue;
+    } else {
+      return usdValue / marketData[swapTo].price;
+    }
+  };
+
+  const handleSwap = () => {
+    const amt = parseFloat(swapAmount);
+    const returnAmt = getEstimatedReturn();
+    if (isNaN(amt) || amt <= 0) return;
+
+    const success = onSwap(swapFrom, swapTo, amt, returnAmt);
+    if (success) {
+      setSwapAmount('');
+    } else {
+      setError("Insufficient funds for swap!");
+      setTimeout(() => setError(null), 2000);
+    }
+  };
 
   const handleSend = () => {
     const success = onSend(10);
@@ -802,94 +1002,324 @@ function WalletSimulator({ balance, history, onBack, onReceive, onSend }: {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+      className="space-y-8"
     >
-      <div className="lg:col-span-2 space-y-8">
-        <div className="w-full flex justify-between items-center bg-gray-900/50 p-4 rounded-2xl border border-gray-800">
-          <button onClick={onBack} className="p-2 hover:bg-gray-800 rounded-lg transition-colors flex items-center gap-2 text-gray-400">
-            <ArrowLeft className="w-5 h-5" /> Dashboard
-          </button>
-          <span className="font-mono text-sm uppercase tracking-widest text-emerald-500">Live Network</span>
-        </div>
-
-        {/* Card View */}
-        <div className="bg-gradient-to-br from-emerald-600 to-teal-900 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group border border-white/10">
-          <div className="absolute top-0 right-0 p-8">
-            <Zap className="w-12 h-12 text-white/20 fill-current" />
-          </div>
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mb-32 filter blur-3xl group-hover:bg-white/10 transition-all" />
-          
-          <div className="space-y-6 relative z-10">
-            <div className="flex justify-between items-start">
-              <span className="font-mono text-white/60 tracking-[0.3em] uppercase text-xs">Verse Platinum Card</span>
-              <div className="w-12 h-8 rounded-md bg-white/20 backdrop-blur-sm border border-white/10" />
-            </div>
-            
-            <div className="space-y-1">
-              <p className="text-white/60 text-sm font-medium">Total Balance</p>
-              <h2 className="text-5xl font-black text-white tracking-tighter">
-                {balance.toLocaleString()} <span className="text-2xl font-medium text-emerald-300">VERSE</span>
-              </h2>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <button 
-                onClick={() => onReceive(10)}
-                className="flex-1 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                <Plus className="w-5 h-5" /> Receive
-              </button>
-              <button 
-                onClick={handleSend}
-                className="flex-1 py-4 bg-black/20 hover:bg-black/30 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                <Minus className="w-5 h-5" /> Send
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <p className="text-red-400 font-bold text-center animate-bounce">{error}</p>
-        )}
-
-        {/* Transfer Interface */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-6">
-          <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <History className="w-5 h-5 text-gray-500" /> Recent Activity
-          </h4>
-          <div className="space-y-3">
-            {history.length === 0 ? (
-              <p className="text-gray-600 text-center py-8 font-mono italic">No transaction history found</p>
-            ) : (
-              history.map(tx => (
-                <TransactionRow key={tx.id} tx={tx} />
-              ))
-            )}
-          </div>
+      {/* Wallet Header */}
+      <div className="w-full flex flex-col sm:flex-row justify-between items-center bg-gray-900/50 p-4 rounded-3xl border border-gray-800 gap-4">
+        <button onClick={onBack} className="w-full sm:w-auto p-3 hover:bg-gray-800 rounded-2xl transition-colors flex items-center justify-center gap-2 text-gray-400">
+          <ArrowLeft className="w-5 h-5" /> Back
+        </button>
+        <div className="flex bg-gray-800/50 p-1 rounded-2xl w-full sm:w-auto">
+          {(['portfolio', 'market', 'swap'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 sm:flex-none px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
+                activeTab === tab ? 'bg-emerald-500 text-black shadow-lg' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Sidebar Assets */}
-      <div className="space-y-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6">
-          <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">Asset Allocation</h4>
-          <div className="space-y-6">
-            <AssetItem name="Ethereum" percentage={12} color="bg-indigo-500" />
-            <AssetItem name="Verse" percentage={85} color="bg-emerald-500" />
-            <AssetItem name="USDC" percentage={3} color="bg-blue-400" />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <AnimatePresence mode="wait">
+            {activeTab === 'portfolio' && (
+              <motion.div
+                key="tab-portfolio"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-8"
+              >
+                {/* Main Card */}
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-900 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group border border-white/10">
+                  <div className="absolute top-0 right-0 p-8">
+                    <Zap className="w-12 h-12 text-white/20 fill-current" />
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mb-32 filter blur-3xl" />
+                  
+                  <div className="space-y-6 relative z-10">
+                    <div className="flex justify-between items-start">
+                      <span className="font-mono text-white/60 tracking-[0.3em] uppercase text-xs">Verse Platinum</span>
+                      <div className="w-12 h-8 rounded-md bg-white/20 backdrop-blur-sm border border-white/10" />
+                    </div>
+                    
+                    <div className="space-y-1">
+                      <p className="text-white/60 text-sm font-medium">Total App Balance</p>
+                      <h2 className="text-5xl font-black text-white tracking-tighter">
+                        ${balance.toLocaleString()} <span className="text-2xl font-medium text-emerald-300">USD</span>
+                      </h2>
+                    </div>
+
+                    <div className="flex gap-4 pt-4">
+                      <button onClick={() => onReceive(10)} className="flex-1 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                        <Plus className="w-5 h-5" /> Deposit
+                      </button>
+                      <button onClick={handleSend} className="flex-1 py-4 bg-black/20 hover:bg-black/30 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
+                        <Minus className="w-5 h-5" /> Withdraw
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assets List */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-bold flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-emerald-500" /> Your Assets
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {SUPPORTED_TOKENS.map(token => (
+                      <div key={token.symbol} className="bg-gray-900 border border-gray-800 p-6 rounded-[2rem] hover:border-gray-700 transition-colors">
+                        <div className="flex items-center gap-4 mb-4">
+                          <img src={token.icon} alt={token.symbol} className="w-10 h-10 rounded-full" referrerPolicy="no-referrer" />
+                          <div>
+                            <p className="font-bold">{token.name}</p>
+                            <p className="text-xs text-gray-500">{token.symbol}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-2xl font-black">{tokenBalances[token.symbol]?.toFixed(4)}</p>
+                          <p className="text-sm text-gray-500 font-mono">
+                            ≈ ${(tokenBalances[token.symbol] * marketData[token.symbol].price).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'market' && (
+              <motion.div
+                key="tab-market"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold flex items-center gap-2">
+                    <CandlestickChart className="w-5 h-5 text-emerald-500" /> Live Market Feed
+                  </h4>
+                  <span className="text-xs font-mono text-emerald-500 animate-pulse">● Live Data</span>
+                </div>
+
+                <div className="bg-gray-900 border border-gray-800 rounded-[2rem] overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-800/50 text-left">
+                      <tr>
+                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-500">Asset</th>
+                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-500">Price</th>
+                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-500">24h Change</th>
+                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-500 hidden sm:table-cell">Trend</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800">
+                      {SUPPORTED_TOKENS.map(token => {
+                        const data = marketData[token.symbol];
+                        return (
+                          <tr key={token.symbol} className="hover:bg-gray-800/30 transition-colors group">
+                            <td className="px-6 py-6">
+                              <div className="flex items-center gap-3">
+                                <img src={token.icon} alt={token.symbol} className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                                <div>
+                                  <p className="font-bold">{token.name}</p>
+                                  <p className="text-[10px] font-mono text-gray-500">{token.symbol}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-6">
+                              <motion.p
+                                key={data.price}
+                                initial={{ opacity: 0.5 }}
+                                animate={{ opacity: 1 }}
+                                className="font-mono font-bold text-white"
+                              >
+                                ${data.price < 1 ? data.price.toFixed(4) : data.price.toLocaleString()}
+                              </motion.p>
+                            </td>
+                            <td className="px-6 py-6">
+                              <span className={`text-sm font-bold ${data.change24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {data.change24h >= 0 ? '+' : ''}{data.change24h.toFixed(2)}%
+                              </span>
+                            </td>
+                            <td className="px-6 py-6 hidden sm:table-cell">
+                              <div className="flex items-end gap-1 h-8">
+                                {data.sparkline.map((val, i) => (
+                                  <div 
+                                    key={i} 
+                                    className={`w-1 rounded-full ${data.change24h >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                                    style={{ 
+                                      height: `${(val / Math.max(...data.sparkline)) * 100}%`,
+                                      opacity: 0.3 + (i / data.sparkline.length) * 0.7
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'swap' && (
+              <motion.div
+                key="tab-swap"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="space-y-6"
+              >
+                <h4 className="text-lg font-bold flex items-center gap-2">
+                  <ArrowRightLeft className="w-5 h-5 text-emerald-500" /> Token Swap
+                </h4>
+                
+                <div className="bg-gray-900 border border-gray-800 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center px-2">
+                      <label className="text-xs font-mono uppercase tracking-widest text-gray-500">You Pay</label>
+                      <div className="flex gap-2 items-center">
+                        <span className="text-[10px] text-gray-500">Available: {getAvailableBalance().toFixed(4)}</span>
+                        <button 
+                          onClick={setMaxBalance}
+                          className="text-[10px] bg-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded-full hover:bg-emerald-500/30 transition-colors font-bold"
+                        >
+                          MAX
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 rounded-3xl p-4 flex items-center gap-4 focus-within:border-emerald-500 border border-transparent transition-all">
+                      <select 
+                        value={swapFrom}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSwapFrom(val);
+                          if (val !== 'USD' && swapTo !== 'USD') setSwapTo('USD');
+                        }}
+                        className="bg-transparent border-none outline-none font-bold text-lg min-w-[100px]"
+                      >
+                        <option value="USD">USD</option>
+                        {SUPPORTED_TOKENS.map(t => <option key={t.symbol} value={t.symbol}>{t.symbol}</option>)}
+                      </select>
+                      <input 
+                        type="number" 
+                        value={swapAmount}
+                        onChange={(e) => setSwapAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="bg-transparent border-none outline-none text-right flex-1 text-2xl font-black text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center -my-2 relative z-10">
+                    <button 
+                      onClick={() => {
+                        const temp = swapFrom;
+                        setSwapFrom(swapTo);
+                        setSwapTo(temp);
+                      }}
+                      className="p-3 bg-emerald-500 text-black rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-xl"
+                    >
+                      <ArrowRightLeft className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-widest text-gray-500 ml-2">You Receive (Est.)</label>
+                    <div className="bg-gray-800 rounded-3xl p-6 flex items-center justify-between border border-transparent">
+                      <select 
+                        value={swapTo}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSwapTo(val);
+                          if (val !== 'USD' && swapFrom !== 'USD') setSwapFrom('USD');
+                        }}
+                        className="bg-transparent border-none outline-none font-bold text-lg min-w-[100px]"
+                      >
+                        <option value="USD">USD</option>
+                        {SUPPORTED_TOKENS.map(t => <option key={t.symbol} value={t.symbol}>{t.symbol}</option>)}
+                      </select>
+                      <p className="text-2xl font-black text-emerald-400">
+                        {getEstimatedReturn().toFixed(swapTo === 'USD' ? 2 : 6)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleSwap}
+                    disabled={!swapAmount || parseFloat(swapAmount) <= 0}
+                    className="w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-black font-black rounded-3xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:grayscale uppercase tracking-widest"
+                  >
+                    Confirm Swap
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-3xl p-6 relative overflow-hidden">
-          <div className="relative z-10 space-y-4">
-            <h4 className="font-bold text-yellow-500 flex items-center gap-2">
-              <Zap className="w-4 h-4" /> Pro Tips
+        {/* Sidebar */}
+        <div className="space-y-8">
+          <div className="bg-gray-900 border border-gray-800 rounded-[2.5rem] p-8 space-y-6">
+            <h4 className="text-sm font-mono uppercase tracking-[0.2em] text-gray-500 flex items-center gap-2">
+              <History className="w-4 h-4" /> Activity
             </h4>
-            <p className="text-sm text-gray-400 leading-relaxed italic">
-              "Did you know? Verse coins can be farmed 2x faster during community events."
-            </p>
+            <div className="space-y-6">
+              {history.length > 0 ? history.map(tx => (
+                <div key={tx.id} className="flex items-center gap-4 group">
+                  <div className={`p-3 rounded-2xl ${
+                    tx.type === 'receive' ? 'bg-emerald-500/10 text-emerald-500' : 
+                    tx.type === 'earned' ? 'bg-yellow-500/10 text-yellow-500' :
+                    tx.type === 'swap' ? 'bg-blue-500/10 text-blue-500' :
+                    'bg-red-500/10 text-red-500'
+                  }`}>
+                    {tx.type === 'receive' ? <Plus className="w-4 h-4" /> : 
+                     tx.type === 'earned' ? <Zap className="w-4 h-4" /> :
+                     tx.type === 'swap' ? <ArrowRightLeft className="w-4 h-4" /> :
+                     <Minus className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate group-hover:text-white transition-colors">{tx.description}</p>
+                    <p className="text-[10px] text-gray-500 font-mono">{new Date(tx.date).toLocaleTimeString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-black ${
+                      ['receive', 'earned'].includes(tx.type) ? 'text-emerald-400' : 'text-gray-400'
+                    }`}>
+                      {['receive', 'earned'].includes(tx.type) ? '+' : '-'}{tx.amount}
+                    </p>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600 text-sm italic">No recent anomalies detected.</p>
+                </div>
+              )}
+            </div>
+            
+            <button className="w-full py-4 text-xs font-mono uppercase tracking-[0.3em] text-gray-500 hover:text-emerald-500 transition-colors border-t border-gray-800 pt-6">
+              View Full History
+            </button>
           </div>
+
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-center text-sm font-bold"
+            >
+              {error}
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -912,24 +1342,6 @@ function TransactionRow({ tx }: { tx: Transaction; key?: any }) {
       <span className={`font-mono font-bold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
         {isPositive ? '+' : '-'}{tx.amount}
       </span>
-    </div>
-  );
-}
-
-function AssetItem({ name, percentage, color }: { name: string; percentage: number; color: string }) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-xs font-bold uppercase tracking-tight">
-        <span className="text-gray-400">{name}</span>
-        <span className="text-gray-200">{percentage}%</span>
-      </div>
-      <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          className={`h-full ${color}`} 
-        />
-      </div>
     </div>
   );
 }
