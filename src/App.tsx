@@ -20,9 +20,9 @@ import {
   Zap,
   ArrowRightLeft,
   CandlestickChart,
-  Briefcase
+  Briefcase,
+  Sparkles
 } from 'lucide-react';
-
 // --- Types ---
 type GameState = 'home' | 'clicker' | 'quiz' | 'wallet';
 
@@ -88,11 +88,11 @@ function Particle({ x, y }: { x: number; y: number; key?: any }) {
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>('home');
-  const [username, setUsername] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(() => localStorage.getItem('verseUser'));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [loadProgress, setLoadProgress] = useState(0);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(100);
   const [currentTip, setCurrentTip] = useState(0);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginStep, setLoginStep] = useState(0);
@@ -104,31 +104,10 @@ export default function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('verseUser');
-    
-    // 1 second duration loading simulation (step 1% every 10ms)
-    const interval = setInterval(() => {
-      setLoadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            if (savedUser) setUsername(savedUser);
-            setIsLoadingUser(false);
-          }, 300); // 300ms delay for transition
-          return 100;
-        }
-        return prev + 1;
-      });
-    }, 10);
-
-    // Tip rotation every 1 second
-    const tipInterval = setInterval(() => {
-      setCurrentTip(prev => (prev + 1) % loadingTips.length);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-      clearInterval(tipInterval);
-    };
+    if (savedUser) {
+      setUsername(savedUser);
+    }
+    setIsLoadingUser(false);
   }, []);
 
   const [coins, setCoins] = useState(0);
@@ -318,13 +297,8 @@ export default function App() {
     e.preventDefault();
     const cleanName = tempUsername.trim();
     if (cleanName) {
-      setIsLoggingIn(true);
-      
-      setTimeout(() => {
-        localStorage.setItem('verseUser', cleanName);
-        setUsername(cleanName);
-        setIsLoggingIn(false);
-      }, 1000);
+      localStorage.setItem('verseUser', cleanName);
+      setUsername(cleanName);
     }
   };
 
@@ -614,7 +588,8 @@ export default function App() {
                       </AnimatePresence>
                     </section>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <MenuCard 
                   icon={<Gamepad2 className="w-8 h-8" />}
                   title="Verse Clicker"
@@ -721,6 +696,8 @@ export default function App() {
               }}
             />
           )}
+
+
         </AnimatePresence>
       </main>
 
