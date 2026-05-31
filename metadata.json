@@ -2,5 +2,5 @@
   "name": "VERSE GAME & VERSE MARKET ANALYTICS",
   "description": "A high-fidelity mini-game hub and market analytics platform for the Verse ecosystem.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

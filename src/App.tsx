@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, ReactNode, MouseEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ReactNode, MouseEvent, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import BitcoinWalletDashboard from './components/BitcoinWalletDashboard';
+import CryptoHistory from './components/CryptoHistory';
+import ClaimReward from './components/ClaimReward';
 import { 
   Coins, 
   Gamepad2, 
@@ -21,10 +24,66 @@ import {
   ArrowRightLeft,
   CandlestickChart,
   Briefcase,
-  Sparkles
+  Sparkles,
+  Send,
+  Download,
+  RefreshCw,
+  Percent,
+  Flame,
+  QrCode,
+  Info,
+  Check,
+  Lock,
+  ChevronRight,
+  PlusCircle,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Globe,
+  BookOpen,
+  CalendarRange
 } from 'lucide-react';
+// --- Safe Storage Wrapper for Iframe Compatibility ---
+const safeStorage = {
+  memoryStorage: {} as Record<string, string>,
+  getItem(key: string): string | null {
+    try {
+      return window.localStorage.getItem(key);
+    } catch (e) {
+      return this.memoryStorage[key] || null;
+    }
+  },
+  setItem(key: string, value: string): void {
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      this.memoryStorage[key] = value;
+    }
+  },
+  removeItem(key: string): void {
+    try {
+      window.localStorage.removeItem(key);
+    } catch (e) {
+      delete this.memoryStorage[key];
+    }
+  },
+  clear(): void {
+    try {
+      window.localStorage.clear();
+    } catch (e) {
+      this.memoryStorage = {};
+    }
+  },
+  keys(): string[] {
+    try {
+      return Object.keys(window.localStorage);
+    } catch (e) {
+      return Object.keys(this.memoryStorage);
+    }
+  }
+};
+
 // --- Types ---
-type GameState = 'home' | 'clicker' | 'quiz' | 'wallet';
+type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward';
 
 interface Token {
   id: string;
@@ -68,6 +127,23 @@ const SUPPORTED_TOKENS: Token[] = [
 
 // --- Components ---
 
+const maskEmail = (email: string | null): string => {
+  if (!email) return '';
+  const emailLower = email.toLowerCase().trim();
+  if (emailLower === 'mdjuwelranajx127133@gmail.com' || emailLower === 'mdjuwelranajx127133') {
+    return 'm...........@gmail.com';
+  }
+  if (email.includes('@')) {
+    const parts = email.split('@');
+    const firstChar = parts[0].length > 0 ? parts[0][0] : '';
+    return `${firstChar}...........@${parts[1]}`;
+  }
+  if (email.length > 2) {
+    return email.charAt(0) + '...' + email.charAt(email.length - 1);
+  }
+  return email;
+};
+
 function Particle({ x, y }: { x: number; y: number; key?: any }) {
   return (
     <motion.div
@@ -87,10 +163,32 @@ function Particle({ x, y }: { x: number; y: number; key?: any }) {
 }
 
 export default function App() {
-  const [gameState, setGameState] = useState<GameState>('home');
-  const [username, setUsername] = useState<string | null>(() => localStorage.getItem('verseUser'));
+  const [gameState, setGameState] = useState<GameState>(() => {
+    return (safeStorage.getItem('verse_game_state') as GameState) || 'home';
+  });
+  const [username, setUsername] = useState<string | null>(() => safeStorage.getItem('verseUser'));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
+  
+  // Custom Login Flow States
+  const [appIsSignUp, setAppIsSignUp] = useState(false);
+  const [telegramUser, setTelegramUser] = useState('');
+  const [telegramPass, setTelegramPass] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPass, setLoginPass] = useState('');
+  const [googleShowModalApp, setGoogleShowModalApp] = useState(false);
+  const [customGoogleEmailApp, setCustomGoogleEmailApp] = useState('');
+  const [appAuthType, setAppAuthType] = useState<'standard' | 'google' | 'telegram'>(() => {
+    return (safeStorage.getItem('verse_app_authtype') as any) || 'standard';
+  });
+  const [googleUsersApp] = useState([
+    { name: 'Juwel Rana', email: 'mdjuwelranajx127133@gmail.com', avatar: 'https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg' },
+    { name: 'Rana Jx', email: 'ranajx127@gmail.com', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop' },
+  ]);
+
+  const [isConnectingApp, setIsConnectingApp] = useState(false);
+  const [connectProgress, setConnectProgress] = useState(0);
+
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [loadProgress, setLoadProgress] = useState(100);
   const [currentTip, setCurrentTip] = useState(0);
@@ -103,7 +201,7 @@ export default function App() {
   ];
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('verseUser');
+    const savedUser = safeStorage.getItem('verseUser');
     if (savedUser) {
       setUsername(savedUser);
     }
@@ -156,10 +254,10 @@ export default function App() {
     }
 
     try {
-      const savedCoins = localStorage.getItem(`verse_${username}_coins`);
-      const savedBalance = localStorage.getItem(`verse_${username}_balance`);
-      const savedTokens = localStorage.getItem(`verse_${username}_tokens`);
-      const savedHistory = localStorage.getItem(`verse_${username}_history`);
+      const savedCoins = safeStorage.getItem(`verse_${username}_coins`);
+      const savedBalance = safeStorage.getItem(`verse_${username}_balance`);
+      const savedTokens = safeStorage.getItem(`verse_${username}_tokens`);
+      const savedHistory = safeStorage.getItem(`verse_${username}_history`);
 
       if (savedCoins !== null) setCoins(parseInt(savedCoins));
       if (savedBalance !== null) setWalletBalance(parseFloat(savedBalance));
@@ -195,30 +293,42 @@ export default function App() {
   // Persistence Logic: Save data whenever it changes, but ONLY after it's been loaded correctly
   useEffect(() => {
     if (!username || !isDataLoaded) return;
-    localStorage.setItem(`verse_${username}_coins`, coins.toString());
+    safeStorage.setItem(`verse_${username}_coins`, coins.toString());
     setLastSaveTime(new Date());
   }, [coins, username, isDataLoaded]);
 
   useEffect(() => {
     if (!username || !isDataLoaded) return;
-    localStorage.setItem(`verse_${username}_balance`, walletBalance.toString());
+    safeStorage.setItem(`verse_${username}_balance`, walletBalance.toString());
     setLastSaveTime(new Date());
   }, [walletBalance, username, isDataLoaded]);
 
   useEffect(() => {
     if (!username || !isDataLoaded) return;
-    localStorage.setItem(`verse_${username}_tokens`, JSON.stringify(tokenBalances));
+    safeStorage.setItem(`verse_${username}_tokens`, JSON.stringify(tokenBalances));
     setLastSaveTime(new Date());
   }, [tokenBalances, username, isDataLoaded]);
 
   useEffect(() => {
     if (!username || !isDataLoaded) return;
-    localStorage.setItem(`verse_${username}_history`, JSON.stringify(history));
+    safeStorage.setItem(`verse_${username}_history`, JSON.stringify(history));
     setLastSaveTime(new Date());
   }, [history, username, isDataLoaded]);
   const [particles, setParticles] = useState<{ id: number; x: number; y: number }[]>([]);
   const [showLinks, setShowLinks] = useState(false);
   const [showFocus, setShowFocus] = useState(false);
+  const [isWelcomeExpanded, setIsWelcomeExpanded] = useState(false);
+  const [homeSubState, setHomeSubState] = useState<'welcome' | 'features'>(() => {
+    return (safeStorage.getItem('verse_home_sub_state') as 'welcome' | 'features') || 'welcome';
+  });
+
+  useEffect(() => {
+    safeStorage.setItem('verse_game_state', gameState);
+  }, [gameState]);
+
+  useEffect(() => {
+    safeStorage.setItem('verse_home_sub_state', homeSubState);
+  }, [homeSubState]);
 
   // Market Price Simulation & Real Data Fetching
   useEffect(() => {
@@ -297,7 +407,7 @@ export default function App() {
     e.preventDefault();
     const cleanName = tempUsername.trim();
     if (cleanName) {
-      localStorage.setItem('verseUser', cleanName);
+      safeStorage.setItem('verseUser', cleanName);
       setUsername(cleanName);
     }
   };
@@ -326,8 +436,11 @@ export default function App() {
 
   const transferToWallet = () => {
     if (coins > 0) {
-      setWalletBalance(prev => prev + coins);
-      addTransaction('earned', coins, 'Transferred from Game Balance');
+      setTokenBalances(prev => ({
+        ...prev,
+        VERSE: (prev['VERSE'] || 0) + coins
+      }));
+      addTransaction('earned', coins, `Transferred ${coins} VERSE to Wallet`);
       setCoins(0);
     }
   };
@@ -335,19 +448,21 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#c0a080] selection:text-white">
       {/* Fixed Top Logo Header */}
-      <div className="fixed top-0 left-0 w-full h-[55px] bg-white border-b border-gray-100 flex items-center px-[12px] z-[10000] shadow-sm">
-        <img 
-          src="https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png" 
-          alt="Verse Logo" 
-          className="h-[35px] w-auto mr-[10px] !block"
-          referrerPolicy="no-referrer"
-        />
-        <div className="flex items-center text-[16px] font-bold tracking-[1px] uppercase">
-          <span className="text-[#8b5e3c]">VERSE GAME</span>
-          <span className="mx-1 text-[#003366]">&</span>
-          <span className="text-[#003366]">VERSE MARKET ANALYTICS</span>
+      {username && !(gameState === 'home' && homeSubState === 'welcome') && (
+        <div className="fixed top-0 left-0 w-full h-[55px] bg-white border-b border-gray-100 flex items-center px-[12px] z-[10000] shadow-sm">
+          <img 
+            src="https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png" 
+            alt="Verse Logo" 
+            className="h-[35px] w-auto mr-[10px] !block"
+            referrerPolicy="no-referrer"
+          />
+          <div className="flex items-center text-[16px] font-bold tracking-[1px] uppercase">
+            <span className="text-[#8b5e3c]">VERSE GAME</span>
+            <span className="mx-1 text-[#003366]">&</span>
+            <span className="text-[#003366]">VERSE MARKET ANALYTICS</span>
+          </div>
         </div>
-      </div>
+      )}
 
       <AnimatePresence mode="wait">
         {isLoadingUser ? (
@@ -405,103 +520,208 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-white flex items-center justify-center p-6 pt-[55px]"
+            className="fixed inset-0 z-[9999] bg-gradient-to-br from-[#02081f] via-[#051130] to-[#091b4f] flex items-center justify-center p-6 pt-[55px] overflow-y-auto"
           >
+            {/* Ambient luxury colored bg glowing backdrops */}
+            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-indigo-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+
             <AnimatePresence mode="wait">
-              {isLoggingIn ? (
+              {isConnectingApp ? (
                 <motion.div
                   key="logging-in"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  className="text-center space-y-6"
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  className="text-center space-y-6 relative z-10 max-w-sm"
                 >
-                  <div className="relative w-16 h-16 mx-auto mb-4">
-                    <div className="absolute inset-0 border-4 border-[#c0a080]/20 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-t-[#c0a080] rounded-full animate-spin"></div>
+                  <div className="relative w-24 h-24 mx-auto mb-4">
+                    {/* Pulsing glow rings */}
+                    <div className="absolute inset-[-12px] bg-blue-500/10 rounded-full blur-md animate-pulse"></div>
+                    <div className="absolute inset-0 border-4 border-white/5 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-blue-400 border-r-indigo-500 border-l-sky-500 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
                   </div>
-                  <h2 className="text-2xl font-black text-gray-900 italic uppercase tracking-widest animate-pulse">
-                    Logging in...
+                  <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-200 to-indigo-300 uppercase tracking-widest animate-pulse">
+                    Connecting Portal...
                   </h2>
+                  <p className="text-xs text-slate-400 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
+                  
+                  {/* Dynamic Progress indicator */}
+                  <div className="w-[240px] mx-auto space-y-2 pt-2">
+                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-600 via-indigo-650 to-sky-400 transition-all duration-150 ease-out"
+                        style={{ width: `${connectProgress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono font-bold">
+                      <span>SECURE SYNCING</span>
+                      <span>{Math.floor(connectProgress)}%</span>
+                    </div>
+                  </div>
                 </motion.div>
               ) : (
-                <motion.div 
-                  key="login-form"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="max-w-md w-full text-center space-y-8"
-                >
-                  <img 
-                    src="https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png" 
-                    alt="Verse Logo" 
-                    className="w-32 h-auto mx-auto !block"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="space-y-4">
-                    <h2 className="text-3xl font-black text-gray-900">Identity Access</h2>
-                    <p className="text-[#8b5e3c]">Enter your moniker to access the Verse Mini Hub</p>
+                <div key="login-form-container" className="w-full max-w-md relative z-10 flex flex-col items-center gap-6">
+                  
+                  {/* BRAND HEADER & WELCOME MESSAGE */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center w-full px-4"
+                  >
+                    <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl mx-auto mb-4 border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-105 duration-300">
+                      <img
+                        src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
+                        alt="Bitcoin.com Wallet Logo"
+                        className="w-full h-full object-cover rounded-[1.4rem]"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <h1 className="text-3xl font-extrabold text-white tracking-tight">
+                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300">Wallet</span>
+                    </h1>
+                    <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">Ecosystem Game & Analytics Portal</p>
+                  </motion.div>
+
+                  {/* SIGN IN INSTRUCTIONS DESCRIPTION CARD */}
+                  <div className="bg-blue-950/50 border border-blue-500/20 rounded-[2rem] p-5 backdrop-blur-md text-left text-slate-200 text-xs leading-relaxed space-y-3 w-full">
+                    <div className="flex items-center gap-2 text-sky-400 font-extrabold uppercase tracking-wider text-[11px]">
+                      <Info className="w-4 h-4" />
+                      <span>Security Instructions</span>
+                    </div>
+                    <p className="text-slate-350 font-medium">
+                      Welcome to the portal. Enter your Google sign in credentials below to enter. This login page acts as your portal gateway to access game features and analytics.
+                    </p>
                   </div>
-                  <form onSubmit={handleStart} className="space-y-4">
-                    <input 
-                      type="text" 
-                      value={tempUsername}
-                      onChange={(e) => setTempUsername(e.target.value)}
-                      placeholder="Username..."
-                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 focus:border-[#c0a080] outline-none transition-all text-center text-xl font-bold text-gray-900"
-                      autoFocus
-                    />
-                    <button 
-                      type="submit"
-                      disabled={!tempUsername.trim()}
-                      className="w-full py-4 bg-[#c0a080] text-[#1a0f0a] font-bold rounded-2xl hover:bg-[#d4b496] transition-all disabled:opacity-50"
+
+                  {/* SINGLE UNIFIED PREMIUM LOGIN FORM */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full bg-[#0b1329]/90 border border-blue-900/55 rounded-[2.2rem] p-6 backdrop-blur-2xl transition-all shadow-2xl flex flex-col gap-5 border-t-2 border-t-blue-500/20"
+                  >
+                    <div>
+                      <span className="text-[9px] font-mono tracking-widest text-sky-400 font-black uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/10">SECURE LOGIN METHOD</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
+                        <input
+                          type="email"
+                          value={customGoogleEmailApp}
+                          onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
+                          placeholder="...........@gmail.com"
+                          className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all font-sans"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                        <input
+                          type="password"
+                          value={telegramPass}
+                          onChange={(e) => setTelegramPass(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
+                        />
+                      </div>
+
+                      <div className="pt-1 flex justify-start">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomGoogleEmailApp('...........@gmail.com');
+                            setTelegramPass('supersecret');
+                          }}
+                          className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-400 hover:text-blue-300 transition-colors font-mono font-black hover:underline bg-blue-950/20 hover:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-500/15"
+                        >
+                          💡 Autofill Demo Account
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const emailInput = customGoogleEmailApp.trim();
+                        if (!emailInput) return;
+                        
+                        // Map the user session securely
+                        const finalEmail = (emailInput === '...........@gmail.com' || emailInput === '')
+                          ? 'mdjuwelranajx127133@gmail.com'
+                          : emailInput;
+                          
+                        setIsConnectingApp(true);
+                        setConnectProgress(0);
+                        let progressCount = 0;
+                        const t = setInterval(() => {
+                          progressCount += Math.random() * 25 + 5;
+                          if (progressCount >= 100) {
+                            clearInterval(t);
+                            setConnectProgress(100);
+                            setAppAuthType('google');
+                            safeStorage.setItem('verse_app_authtype', 'google');
+                            safeStorage.setItem('verseUser', finalEmail);
+                            setUsername(finalEmail);
+                            setIsConnectingApp(false);
+                          } else {
+                            setConnectProgress(progressCount);
+                          }
+                        }, 80);
+                      }}
+                      disabled={!customGoogleEmailApp.trim()}
+                      className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/20 cursor-pointer mt-4 border-t border-white/10"
                     >
-                      Enter Hub
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.24 10.285V13.4h6.86c-.277 1.56-1.602 4.585-6.86 4.585-4.54 0-8.24-3.765-8.24-8.4s3.7-8.4 8.24-8.4c2.58 0 4.307 1.095 5.298 2.045l2.465-2.37C18.535 1.21 15.655 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.4-.195-1.925H12.24z"/>
+                      </svg>
+                      Sign In with Google Account
                     </button>
-                  </form>
-                </motion.div>
+                  </motion.div>
+
+                </div>
               )}
             </AnimatePresence>
+
           </motion.div>
         ) : (
           <motion.div
             key="app-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            className={gameState === 'home' && homeSubState === 'welcome' ? "pt-0" : "pt-[55px]"}
           >
             {/* Navigation Header */}
-            <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-[55px] z-40 mt-[55px]">
-              <div className="max-w-4xl mx-auto px-6 py-4 flex justify-end items-center">
-                <div className="flex items-center gap-6">
-                  <div className="hidden sm:flex flex-col items-end">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Player: {username}</span>
-                      <button 
-                        onClick={() => {
-                          localStorage.removeItem('verseUser');
-                          window.location.reload();
-                        }}
-                        className="text-[9px] bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2 py-0.5 rounded transition-all font-mono"
-                      >
-                        LOGOUT
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Coins className="w-4 h-4 text-yellow-500" />
-                      <span className="font-mono text-lg font-bold text-gray-900">{coins}</span>
-                    </div>
-                  </div>
-                  <div className="h-8 w-[1px] bg-gray-100 hidden sm:block" />
-                  <div className="flex flex-col items-end">
-                    <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Wallet Balance</span>
-                    <div className="flex items-center gap-1.5">
-                      <Wallet className="w-4 h-4 text-emerald-500" />
-                      <span className="font-mono text-lg font-bold text-emerald-600">{walletBalance}</span>
+            {!(gameState === 'home' && homeSubState === 'welcome') && (
+              <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-[55px] z-40 mt-0">
+                <div className="max-w-4xl mx-auto px-6 py-4 flex justify-end items-center">
+                  <div className="flex items-center gap-6">
+                    <div className="hidden sm:flex flex-col items-end">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Player: {username}</span>
+                        <button 
+                          onClick={() => {
+                            safeStorage.removeItem('verseUser');
+                            safeStorage.removeItem('verse_game_state');
+                            safeStorage.removeItem('verse_home_sub_state');
+                            safeStorage.removeItem('verse_app_authtype');
+                            window.location.reload();
+                          }}
+                          className="text-[9px] bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2 py-0.5 rounded transition-all font-mono"
+                        >
+                          LOGOUT
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Coins className="w-4 h-4 text-yellow-500" />
+                        <span className="font-mono text-lg font-bold text-gray-900">{coins}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </header>
+              </header>
+            )}
 
             <main className="max-w-4xl mx-auto px-6 py-8">
               <AnimatePresence mode="wait">
@@ -513,132 +733,325 @@ export default function App() {
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-8"
                   >
-                    <section className="text-center space-y-4">
-                      <h2 className="text-4xl font-black text-gray-900 sm:text-5xl leading-tight">
-                        WELCOME <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c0a080] to-[#8b5e3c]">{username}</span>
-                      </h2>
-                      <p className="text-[#8b5e3c] max-w-lg mx-auto leading-relaxed">
-                        Your decentralized gateway to the Verse network. 
-                        Earn, play, and explore the ecosystem.
-                      </p>
-                    </section>
-
-                    {/* Community Section */}
-                    <section className="text-center space-y-6">
-                      <div className="space-y-4">
-                        <button 
-                          onClick={() => setShowLinks(!showLinks)}
-                          className="bg-[#8b5e3c] hover:bg-[#a67148] active:scale-95 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-[0_4px_20px_rgba(139,94,60,0.3)] uppercase tracking-wider text-sm w-full sm:w-auto"
+                    <AnimatePresence mode="wait">
+                      {homeSubState === 'welcome' && (
+                        <motion.div
+                          key="welcome-page"
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          className="w-full max-w-2xl mx-auto border border-[#8b5e3c]/25 rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-br from-white via-amber-50/15 to-white shadow-2xl space-y-8 flex flex-col items-center"
                         >
-                          {showLinks ? 'Close Community' : 'Join Our Community'}
-                        </button>
-                        
-                        <div className="block">
-                          <button 
-                            onClick={() => setShowFocus(!showFocus)}
-                            className="text-[#8b5e3c] hover:text-[#a67148] font-black uppercase tracking-[0.2em] text-sm transition-colors py-2"
-                          >
-                            {showFocus ? 'Hide Focus' : 'MAIN FOCUS OF THE VERSE GAME'}
-                          </button>
-                        </div>
-                      </div>
-
-                      <AnimatePresence>
-                        {showFocus && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                            exit={{ opacity: 0, y: -10, height: 0 }}
-                            className="overflow-hidden bg-white border border-gray-100 rounded-[2rem] p-8 max-w-2xl mx-auto shadow-xl text-left"
-                          >
-                            <div className="prose prose-sm text-gray-700 space-y-4 leading-relaxed">
-                              <p>First of all a big thank you to my @stone_brb boss. Also expressing gratitude to all the responsible persons of the community, whose tireless efforts and contributions have made our community so strong and organized today.</p>
-                              <p>The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member.</p>
-                              <p>The main focus and purpose of my game is to introduce the future generation to the concept of “Verse” and community, as well as provide a basic understanding of cryptocurrency. Through this game, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices.</p>
-                              <p>I have tried my best so that through this game the new generation can gain atleast a basic knowledge and understand things simply.</p>
-                              <p>One of the most important things in human life is the "beginning". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject. With this game I wanted to make that starting point easy and interesting.</p>
-                              <p>Also, using this game a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading.</p>
+                          <section className="text-center space-y-4 w-full select-none">
+                            {/* Masked User Badge */}
+                            <div className="flex justify-center mb-4">
+                              <span className="text-[10px] font-mono tracking-widest uppercase font-black bg-amber-500/10 border border-amber-500/20 text-[#8b5e3c] px-3.5 py-1.5 rounded-full shadow-sm">
+                                Verified User: {maskEmail(username)}
+                              </span>
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
 
-                      <AnimatePresence>
-                        {showLinks && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: 'auto' }}
-                            exit={{ opacity: 0, y: -10, height: 0 }}
-                            className="overflow-hidden mt-6 bg-slate-50 border border-gray-100 rounded-[2rem] p-6 max-w-md mx-auto space-y-3 shadow-lg"
+                            {/* Clickable task 8 title */}
+                            <button
+                              onClick={() => setIsWelcomeExpanded(!isWelcomeExpanded)}
+                              className="text-center w-full focus:outline-none group cursor-pointer"
+                            >
+                              <h2 className="text-2xl sm:text-3xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] hover:scale-[1.01] transition-transform duration-300">
+                                Welcome! Welcome! Welcome! Welcome! Welcome!
+                              </h2>
+                              <p className="text-[10px] text-[#bd9471] font-extrabold uppercase tracking-widest mt-2 font-mono flex items-center justify-center gap-1.5 group-hover:text-[#8b5e3c]">
+                                {isWelcomeExpanded ? '▼ Tap to collapse details' : '▲ Tap to expand details'}
+                              </p>
+                            </button>
+
+                            {/* Sliding/expandable description under Clickable Header */}
+                            <AnimatePresence initial={false}>
+                              {isWelcomeExpanded && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0, y: -5 }}
+                                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                                  exit={{ opacity: 0, height: 0, y: -5 }}
+                                  className="overflow-hidden max-w-md mx-auto"
+                                >
+                                  <p className="text-xs sm:text-sm font-semibold text-[#8b5e3c]/85 leading-relaxed bg-[#8b5e3c]/5 border border-[#8b5e3c]/10 p-5 rounded-2xl text-left shadow-inner">
+                                    Welcome to Verse Community Hub. Here, you can explore important information about the Verse ecosystem, learn how to monitor market prices, access various analyses and reviews, and gain valuable knowledge and insights about Verse. This is an informative and educational platform for both new and experienced users, where updates, guides, and useful information are shared regularly.
+                                  </p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {/* Badge rows for authorization status */}
+                            <div className="flex justify-center gap-2 pt-2">
+                              {appAuthType === 'telegram' && (
+                                <div className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-600 border border-sky-200/50 rounded-full px-3 py-1.5 text-[10px] font-black tracking-wide font-mono shadow-sm">
+                                  <Send className="w-3.5 h-3.5 rotate-45 text-sky-500 animate-pulse" />
+                                  TELEGRAM ACCESS CORES
+                                </div>
+                              )}
+                              {appAuthType === 'google' && (
+                                <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200/50 rounded-full px-3 py-1.5 text-[10px] font-black tracking-wide font-mono shadow-sm">
+                                  <Globe className="w-3.5 h-3.5 text-emerald-500 animate-spin" style={{ animationDuration: '4s' }} />
+                                  SECURE SESSION GRANTED
+                                </div>
+                              )}
+                            </div>
+                          </section>
+
+                          {/* Community Section */}
+                          <section className="text-center space-y-6 w-full animate-fade-in animate-duration-300">
+                            <div className="space-y-4">
+                              <button 
+                                onClick={() => setShowLinks(!showLinks)}
+                                className="bg-[#8b5e3c] hover:bg-[#a67148] active:scale-95 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-[0_4px_20px_rgba(139,94,60,0.3)] uppercase tracking-wider text-sm w-full sm:w-auto cursor-pointer"
+                              >
+                                {showLinks ? 'Close Community' : 'Join Our Community'}
+                              </button>
+                              
+                              <div className="block">
+                                <button 
+                                  onClick={() => setShowFocus(!showFocus)}
+                                  className="text-[#8b5e3c] hover:text-[#a67148] font-black uppercase tracking-[0.2em] text-sm transition-colors py-2 cursor-pointer"
+                                >
+                                  {showFocus ? 'Hide Focus' : 'MAIN FOCUS OF THE VERSE GAME'}
+                                </button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence>
+                              {showFocus && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10, height: 0 }}
+                                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                  exit={{ opacity: 0, y: -10, height: 0 }}
+                                  className="overflow-hidden bg-white border border-gray-100 rounded-[2rem] p-8 max-w-2xl mx-auto shadow-xl text-left"
+                                >
+                                  <div className="prose prose-sm text-gray-700 space-y-4 leading-relaxed font-normal text-sm">
+                                    <p>First of all a big thank you to my @stone_brb boss. Also expressing gratitude to all the responsible persons of the community, whose tireless efforts and contributions have made our community so strong and organized today.</p>
+                                    <p>The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member.</p>
+                                    <p>The main focus and purpose of my game is to introduce the future generation to the concept of “Verse” and community, as well as provide a basic understanding of cryptocurrency. Through this game, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices.</p>
+                                    <p>I have tried my best so that through this game the new generation can gain atleast a basic knowledge and understand things simply.</p>
+                                    <p>One of the most important things in human life is the "beginning". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject. With this game I wanted to make that starting point easy and interesting.</p>
+                                    <p>Also, using this game a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading.</p>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            <AnimatePresence>
+                              {showLinks && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -10, height: 0 }}
+                                  animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                  exit={{ opacity: 0, y: -10, height: 0 }}
+                                  className="overflow-hidden mt-6 bg-slate-50 border border-gray-100 rounded-[2rem] p-6 max-w-md mx-auto space-y-3 shadow-lg"
+                                >
+                                  <a href="https://t.me/GetVerse" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
+                                    1: VERSE TELEGRAM GROUP
+                                  </a>
+                                  <a href="https://twitter.com/VerseEcosystem" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
+                                    2: VERSE TWITTER COMMUNITY
+                                  </a>
+                                  <a href="https://twitter.com/BitcoinCom" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
+                                    3: VERSE OFFICIAL TWITTER
+                                  </a>
+                                  <a href="http://dashboard.vgdh.io" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
+                                    4: VERSE APP ANALYTICS
+                                  </a>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </section>
+
+                          {/* Action GET STARTED Button */}
+                          <div className="pt-8 w-full flex justify-center">
+                            <motion.button
+                              whileHover={{ scale: 1.05, y: -2 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => setHomeSubState('features')}
+                              className="px-14 py-5 bg-gradient-to-r from-amber-500 via-[#8b5e3c] to-amber-600 text-white font-black text-2xl rounded-2xl tracking-[0.1em] shadow-[0_12px_36px_rgba(139,94,60,0.4)] hover:shadow-[0_15px_40px_rgba(139,94,60,0.6)] cursor-pointer select-none transition-all duration-300 uppercase shrink-0 border border-amber-400/20"
+                            >
+                              GET STARTED
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {homeSubState === 'features' && (
+                        <motion.div
+                          key="features-page"
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          className="space-y-8"
+                        >
+                          {/* Inner control bar to go back to info and philosophy if required */}
+                          <div className="flex justify-start">
+                            <button
+                              onClick={() => setHomeSubState('welcome')}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#8b5e3c] border border-gray-200 hover:bg-gray-50 hover:border-[#8b5e3c]/30 font-bold text-xs uppercase rounded-xl tracking-wider transition-all cursor-pointer shadow-sm"
+                            >
+                              <ArrowLeft className="w-3.5 h-3.5" /> Back to Welcome
+                            </button>
+                          </div>
+
+                          {/* Bitcoin.com Wallet Featured Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('bitcoinWallet')}
+                            className="w-full flex items-center gap-5 bg-gradient-to-r from-white to-gray-50/50 border border-gray-200/80 rounded-[2rem] p-6 text-left transition-all hover:border-[#c0a080]/40 shadow-sm group cursor-pointer"
                           >
-                            <a href="https://t.me/GetVerse" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                              1: VERSE TELEGRAM GROUP
-                            </a>
-                            <a href="https://twitter.com/VerseEcosystem" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                              2: VERSE TWITTER COMMUNITY
-                            </a>
-                            <a href="https://twitter.com/BitcoinCom" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                              3: VERSE OFFICIAL TWITTER
-                            </a>
-                            <a href="http://dashboard.vgdh.io" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                              4: VERSE APP ANALYTICS
-                            </a>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </section>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-md border-2 border-white flex-shrink-0 bg-white group-hover:scale-105 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                alt="Bitcoin.com Wallet Logo" 
+                                className="w-full h-full object-cover transition-all"
+                                referrerPolicy="no-referrer"
+                              />
+                              <div className="absolute inset-0 ring-1 ring-black/5 rounded-2xl" />
+                            </div>
+                            <h3 className="text-2xl font-black text-gray-900 tracking-tight group-hover:text-[#8b5e3c] transition-colors">
+                              Bitcoin.com Wallet
+                            </h3>
+                          </motion.button>
 
+                          {/* Crypto Founder & History Featured Option (Task 10 & 11) */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('cryptoHistory')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-amber-500/25 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/50 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-amber-500/10 flex items-center justify-center border-2 border-amber-500/15 shadow-md">
+                                <BookOpen className="w-7 h-7 text-amber-500 animate-pulse" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight group-hover:text-amber-400 transition-colors">
+                                  Crypto Founder and History
+                                </h3>
+                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Founders, dates and historical discoveries</p>
+                              </div>
+                            </div>
+                            {/* Floated Logo */}
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-blue-500/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                alt="Bitcoin.com Wallet Logo Helper" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <MenuCard 
-                  icon={<Gamepad2 className="w-8 h-8" />}
-                  title="Verse Clicker"
-                  description="Rapid earn system. How fast can you tap?"
-                  color="from-blue-600 to-indigo-700"
-                  onClick={() => setGameState('clicker')}
-                />
-                <MenuCard 
-                  icon={<Brain className="w-8 h-8" />}
-                  title="Knowledge Quiz"
-                  description="Test your crypto IQ and earn massive bonuses."
-                  color="from-purple-600 to-pink-700"
-                  onClick={() => setGameState('quiz')}
-                />
-                <MenuCard 
-                  icon={<WalletCards className="w-8 h-8" />}
-                  title="Verse Wallet"
-                  description="Securely manage and transfer your earned assets."
-                  color="from-emerald-600 to-teal-700"
-                  onClick={() => setGameState('wallet')}
-                />
-              </div>
+                          {/* Claim Daily Reward Featured Option (Task 12) */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('claimReward')}
+                            className="w-full flex items-center gap-5 bg-gradient-to-r from-emerald-950/20 to-teal-950/30 border border-emerald-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-emerald-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-emerald-500/15 flex items-center justify-center border-2 border-emerald-500/20 shadow-md flex-shrink-0">
+                              <CalendarRange className="w-7 h-7 text-emerald-400 animate-bounce" style={{ animationDuration: '3s' }} />
+                            </div>
+                            <div>
+                              <h3 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight group-hover:text-emerald-300 transition-colors flex items-center gap-2">
+                                Claim daily Reward
+                                <img 
+                                  src="https://i.ibb.co.com/XxcwjvBq/Screenshot-2026-05-31-14-49-38-518-com-bitcoin-mwallet-edit.jpg" 
+                                  alt="Daily Reward" 
+                                  className="w-8 h-8 sm:w-9 sm:h-9 object-cover rounded-lg border border-emerald-500/35 shadow-md flex-shrink-0"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </h3>
+                              <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Ticking hours & direct rewards</p>
+                            </div>
+                          </motion.button>
 
-              {coins > 0 && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
-                >
-                  <div className="flex items-center gap-4 text-center sm:text-left">
-                    <div className="p-3 bg-yellow-500/20 rounded-full">
-                      <TrendingUp className="w-6 h-6 text-yellow-500" />
-                    </div>
-                    <div>
-                      <p className="text-yellow-500 font-bold">Unclaimed Assets</p>
-                      <p className="text-sm text-gray-400">You have {coins} Verse waiting for you in the game balance.</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={transferToWallet}
-                    className="w-full sm:w-auto px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                  >
-                    Transfer to Wallet
-                    <ArrowLeft className="w-4 h-4 rotate-180" />
-                  </button>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
+                          {/* Verse Knowledge Quiz Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('quiz')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-purple-950/20 to-indigo-950/30 border border-purple-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-purple-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-purple-500/15 flex items-center justify-center border-2 border-purple-500/20 shadow-md flex-shrink-0">
+                                <Brain className="w-7 h-7 text-purple-400 animate-pulse" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl sm:text-2xl font-black text-purple-400 tracking-tight group-hover:text-purple-300 transition-colors">
+                                  Verse Knowledge Quiz
+                                </h3>
+                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Test your crypto IQ and earn massive bonuses</p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-[#8b5e3c]/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                alt="Verse Logo" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
+                          {/* Verse Wallet Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('wallet')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#0a233b]/40 to-[#050b1a]/50 border border-teal-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-teal-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-teal-500/15 flex items-center justify-center border-2 border-teal-500/20 shadow-md flex-shrink-0">
+                                <WalletCards className="w-7 h-7 text-teal-400 animate-pulse" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl sm:text-2xl font-black text-teal-400 tracking-tight group-hover:text-teal-300 transition-colors">
+                                  Verse Wallet
+                                </h3>
+                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Securely manage and transfer your earned assets</p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                alt="Verse Logo" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
+                          {coins > 0 && (
+                            <motion.div 
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse-subtle"
+                            >
+                              <div className="flex items-center gap-4 text-center sm:text-left">
+                                <div className="p-3 bg-yellow-500/20 rounded-full">
+                                  <TrendingUp className="w-6 h-6 text-yellow-500" />
+                                </div>
+                                <div>
+                                  <p className="text-yellow-500 font-bold">Unclaimed Assets</p>
+                                  <p className="text-sm text-gray-400">You have {coins} Verse waiting for you in the game balance.</p>
+                                </div>
+                              </div>
+                              <button 
+                                onClick={transferToWallet}
+                                className="w-full sm:w-auto px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                              >
+                                Transfer to Wallet
+                                <ArrowLeft className="w-4 h-4 rotate-180" />
+                              </button>
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
 
           {gameState === 'clicker' && (
             <ClickerGame 
@@ -667,32 +1080,29 @@ export default function App() {
               lastSave={lastSaveTime}
               history={history}
               onBack={() => setGameState('home')}
-              onSwap={(from, to, fromAmt, toAmt) => {
-                const hasBalance = from === 'USD' ? walletBalance >= fromAmt : (tokenBalances[from] || 0) >= fromAmt;
-                
-                if (hasBalance) {
-                  if (from === 'USD') setWalletBalance(prev => prev - fromAmt);
-                  else setTokenBalances(prev => ({ ...prev, [from]: prev[from] - fromAmt }));
-                  
-                  if (to === 'USD') setWalletBalance(prev => prev + toAmt);
-                  else setTokenBalances(prev => ({ ...prev, [to]: (prev[to] || 0) + toAmt }));
-                  
-                  addTransaction('swap', fromAmt, `Swapped ${fromAmt.toFixed(4)} ${from} for ${toAmt.toFixed(4)} ${to}`);
-                  return true;
-                }
-                return false;
-              }}
-              onReceive={(amt) => {
-                setWalletBalance(prev => prev + amt);
-                addTransaction('receive', amt, 'External Credit');
-              }}
-              onSend={(amt) => {
-                if (walletBalance >= amt) {
-                  setWalletBalance(prev => prev - amt);
-                  addTransaction('send', amt, 'External Transfer');
-                  return true;
-                }
-                return false;
+              setWalletBalance={setWalletBalance}
+              setTokenBalances={setTokenBalances}
+              setHistory={setHistory}
+              addTransaction={addTransaction}
+            />
+          )}
+
+          {gameState === 'bitcoinWallet' && (
+            <BitcoinWalletDashboard onBack={() => setGameState('home')} />
+          )}
+
+          {gameState === 'cryptoHistory' && (
+            <CryptoHistory onBack={() => setGameState('home')} />
+          )}
+
+          {gameState === 'claimReward' && (
+            <ClaimReward 
+              onBack={() => setGameState('home')} 
+              username={username || 'anonymous'}
+              walletBalance={walletBalance}
+              onClaimSuccess={(amount) => {
+                setWalletBalance(prev => prev + amount);
+                addTransaction('receive', amount, 'Daily Reward Check-in Claim matured');
               }}
             />
           )}
@@ -701,11 +1111,13 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-            <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
-              <p className="text-sm font-mono uppercase tracking-[0.2em]">
-                &copy; 2026 Verse Community &bull; Decentralized Hub
-              </p>
-            </footer>
+            {!(gameState === 'home' && homeSubState === 'welcome') && (
+              <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
+                <p className="text-sm font-mono uppercase tracking-[0.2em]">
+                  &copy; 2026 Verse Community &bull; Decentralized Hub
+                </p>
+              </footer>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1044,10 +1456,11 @@ function WalletSimulator({
   lastSync,
   lastSave,
   history, 
-  onBack, 
-  onReceive, 
-  onSend,
-  onSwap
+  onBack,
+  setWalletBalance,
+  setTokenBalances,
+  setHistory,
+  addTransaction
 }: { 
   balance: number; 
   tokenBalances: Record<string, number>;
@@ -1056,64 +1469,342 @@ function WalletSimulator({
   lastSave: Date | null;
   history: Transaction[];
   onBack: () => void;
-  onReceive: (amt: number) => void;
-  onSend: (amt: number) => boolean;
-  onSwap: (from: string, to: string, fromAmt: number, toAmt: number) => boolean;
+  setWalletBalance: React.Dispatch<React.SetStateAction<number>>;
+  setTokenBalances: React.Dispatch<React.SetStateAction<Record<string, number>>>;
+  setHistory: React.Dispatch<React.SetStateAction<Transaction[]>>;
+  addTransaction: (type: Transaction['type'], amount: number, description: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'portfolio' | 'market' | 'swap'>('portfolio');
-  const [swapFrom, setSwapFrom] = useState<'USD' | string>('USD');
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'send' | 'receive' | 'swap' | 'farms'>('portfolio');
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  // --- Staking Yield Farms & Pools State (Screenshot 1: Farms & Pools) ---
+  const [stakedAmounts, setStakedAmounts] = useState<Record<string, number>>(() => {
+    try {
+      const u = safeStorage.getItem('verseUser') || 'default';
+      const saved = safeStorage.getItem(`verse_staked_${u}`);
+      return saved ? JSON.parse(saved) : { 'VERSE_ETH': 0, 'VERSE_USDT': 0, 'VERSE_SOL': 0 };
+    } catch {
+      return { 'VERSE_ETH': 0, 'VERSE_USDT': 0, 'VERSE_SOL': 0 };
+    }
+  });
+
+  const [unclaimedRewards, setUnclaimedRewards] = useState<Record<string, number>>({
+    'VERSE_ETH': 0, 'VERSE_USDT': 0, 'VERSE_SOL': 0
+  });
+
+  const FARMS = [
+    { id: 'VERSE_ETH', name: 'VERSE-ETH Yield Farm', pair: 'VERSE / ETH', apy: 64.2, tvl: '$1,245,600', icon1: 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png', icon2: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+    { id: 'VERSE_USDT', name: 'VERSE-USDT Liquidity Pool', pair: 'VERSE / USDT', apy: 48.5, tvl: '$840,320', icon1: 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png', icon2: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+    { id: 'VERSE_SOL', name: 'VERSE-SOL Staking Pool', pair: 'VERSE / SOL', apy: 35.8, tvl: '$520,150', icon1: 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png', icon2: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
+  ];
+
+  // Simulating continuous reward emission over time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUnclaimedRewards(prev => {
+        const next = { ...prev };
+        Object.entries(stakedAmounts).forEach(([farmId, stakedAmount]) => {
+          const sAmt = stakedAmount as number;
+          if (sAmt > 0) {
+            const farm = FARMS.find(f => f.id === farmId);
+            const apyDecimal = (farm?.apy || 30) / 100;
+            // reward produced in 2 seconds of real time
+            // Let's multiply rewards rate for instant arcade stimulation progress
+            const secsInYear = 365 * 24 * 3600;
+            const rewardEarned = (sAmt * apyDecimal * 2 * 100) / secsInYear; 
+            next[farmId] = (next[farmId] || 0) + rewardEarned;
+          }
+        });
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [stakedAmounts]);
+
+  const handleStake = (farmId: string, amount: number) => {
+    if (isNaN(amount) || amount <= 0) return;
+    const verseBal = (tokenBalances as any)['VERSE'] || 0;
+    if (verseBal < amount) {
+      triggerError('Insufficient VERSE tokens for staking!');
+      return;
+    }
+
+    // Deduct VERSE from balances
+    setTokenBalances((prev: any) => ({
+      ...prev,
+      VERSE: (prev['VERSE'] || 0) - amount
+    }));
+
+    // Add to staked amount
+    const updatedStaking = {
+      ...stakedAmounts,
+      [farmId]: ((stakedAmounts as any)[farmId] || 0) + amount
+    };
+    setStakedAmounts(updatedStaking);
+    try {
+      const u = safeStorage.getItem('verseUser') || 'default';
+      safeStorage.setItem(`verse_staked_${u}`, JSON.stringify(updatedStaking));
+    } catch (err) { console.error(err); }
+
+    addTransaction('swap', amount, `Staked ${amount.toFixed(2)} VERSE in ${farmId.replace('_', '-')}`);
+    triggerSuccess(`Successfully staked ${amount} VERSE!`);
+  };
+
+  const handleUnstake = (farmId: string) => {
+    const staked = stakedAmounts[farmId] || 0;
+    if (staked <= 0) return;
+
+    // Return to assets
+    setTokenBalances(prev => ({
+      ...prev,
+      VERSE: (prev['VERSE'] || 0) + staked
+    }));
+
+    const updatedStaking = {
+      ...stakedAmounts,
+      [farmId]: 0
+    };
+    setStakedAmounts(updatedStaking);
+    try {
+      const u = safeStorage.getItem('verseUser') || 'default';
+      safeStorage.setItem(`verse_staked_${u}`, JSON.stringify(updatedStaking));
+    } catch (err) { console.error(err); }
+
+    // Recover rewards if any
+    const accrued = unclaimedRewards[farmId] || 0;
+    if (accrued > 0) {
+      setTokenBalances(prev => ({ ...prev, VERSE: (prev['VERSE'] || 0) + accrued }));
+      setUnclaimedRewards(prev => ({ ...prev, [farmId]: 0 }));
+      addTransaction('receive', accrued, `Harvested & Unstaked Verse Farm Rewards`);
+    }
+
+    addTransaction('receive', staked, `Unstaked ${staked.toFixed(2)} VERSE from ${farmId.replace('_', '-')}`);
+    triggerSuccess(`Successfully unstaked VERSE!`);
+  };
+
+  const handleHarvest = (farmId: string) => {
+    const reward = unclaimedRewards[farmId] || 0;
+    if (reward <= 0) {
+      triggerError('No rewards accrued to harvest yet!');
+      return;
+    }
+
+    setTokenBalances(prev => ({
+      ...prev,
+      VERSE: (prev['VERSE'] || 0) + reward
+    }));
+
+    setUnclaimedRewards(prev => ({
+      ...prev,
+      [farmId]: 0
+    }));
+
+    addTransaction('receive', reward, `Harvested ${reward.toFixed(4)} VERSE staking rewards`);
+    triggerSuccess(`Harvested ${reward.toFixed(4)} VERSE successfully!`);
+  };
+
+  // --- Send Assets State (Screenshot 4: Send Asset Layout) ---
+  const [sendToken, setSendToken] = useState<string>('VERSE');
+  const [recipientAddress, setRecipientAddress] = useState<string>('');
+  const [sendAmount, setSendAmount] = useState<string>('');
+  const [sendInUSD, setSendInUSD] = useState<boolean>(false);
+  const [sendFeeSpeed, setSendFeeSpeed] = useState<'economy' | 'regular' | 'priority'>('regular');
+  const [sliderPosition, setSliderPosition] = useState<number>(0);
+  const [isSliding, setIsSliding] = useState<boolean>(false);
+
+  const getSendLimit = () => {
+    if (sendToken === 'USD') return balance;
+    return tokenBalances[sendToken] || 0;
+  };
+
+  const getSendFee = () => {
+    switch (sendFeeSpeed) {
+      case 'economy': return 0.15;
+      case 'regular': return 0.45;
+      case 'priority': return 1.25;
+    }
+  };
+
+  const validateAddress = (addr: string) => {
+    if (sendToken === 'BTC') {
+      return addr.startsWith('bc1') || addr.startsWith('1') || addr.startsWith('3');
+    }
+    if (sendToken === 'SOL') {
+      return addr.length > 30 && !addr.startsWith('0x');
+    }
+    return addr.startsWith('0x') && addr.length === 42;
+  };
+
+  const executeSendFunds = () => {
+    const amt = parseFloat(sendAmount);
+    if (isNaN(amt) || amt <= 0) {
+      triggerError('Please enter a valid transfer amount.');
+      return;
+    }
+
+    const fee = getSendFee();
+    let computedTokenAmount = amt;
+    let computedUSDAmount = amt;
+
+    const tokenPrice = sendToken === 'USD' ? 1 : marketData[sendToken]?.price || 1;
+
+    if (sendInUSD) {
+      computedTokenAmount = amt / tokenPrice;
+      computedUSDAmount = amt;
+    } else {
+      computedTokenAmount = amt;
+      computedUSDAmount = amt * tokenPrice;
+    }
+
+    const currentTokenBalance = getSendLimit();
+    if (currentTokenBalance < computedTokenAmount) {
+      triggerError(`Insufficient balance of ${sendToken}!`);
+      return;
+    }
+
+    if (balance < fee) {
+      triggerError('Insufficient USD Wallet balance to pay network fees!');
+      return;
+    }
+
+    if (!validateAddress(recipientAddress)) {
+      triggerError(`Invalid destination public address format for ${sendToken}!`);
+      return;
+    }
+
+    // Process balances deducting Send amounts and gas fees
+    if (sendToken === 'USD') {
+      setWalletBalance(prev => prev - computedUSDAmount - fee);
+    } else {
+      setTokenBalances(prev => ({
+        ...prev,
+        [sendToken]: prev[sendToken] - computedTokenAmount
+      }));
+      setWalletBalance(prev => prev - fee);
+    }
+
+    addTransaction('send', computedTokenAmount, `Sent ${computedTokenAmount.toFixed(4)} ${sendToken} to external holder`);
+    triggerSuccess(`Successfully sent ${computedTokenAmount.toFixed(4)} ${sendToken}!`);
+
+    // Reset fields
+    setSendAmount('');
+    setRecipientAddress('');
+    setSliderPosition(0);
+  };
+
+  // --- Receive Assets State (Screenshot 2: Receive & Invoice) ---
+  const [receiveToken, setReceiveToken] = useState<string>('VERSE');
+  const [requestInvoiceAmount, setRequestInvoiceAmount] = useState<string>('');
+
+  const getWalletAddress = (sym: string) => {
+    switch (sym) {
+      case 'BTC': return 'bc1q9f5a7dce3472089aedcd9ec7a50852f902';
+      case 'SOL': return 'Go5e3472VfBG6R2VXfBGf902dcd9ec7a50852m89a';
+      default: return '0x8b5e3c9aedcd9ec7a50852f902bc1q9f5a7dce34';
+    }
+  };
+
+  const handleCopyClipboard = () => {
+    const addr = getWalletAddress(receiveToken);
+    navigator.clipboard.writeText(addr);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // --- Token Swap Settings (Screenshot 3: Token Swap Interface) ---
+  const [swapFrom, setSwapFrom] = useState<string>('USD');
   const [swapTo, setSwapTo] = useState<string>('VERSE');
   const [swapAmount, setSwapAmount] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
+  const [swapSlippage, setSwapSlippage] = useState<number>(0.5);
+  const [customSlippageInput, setCustomSlippageInput] = useState<string>('');
+  const [showSlippageTooltip, setShowSlippageTooltip] = useState<boolean>(false);
 
-  const getAvailableBalance = () => {
+  const getSwapAvailableBalance = () => {
     if (swapFrom === 'USD') return balance;
     return tokenBalances[swapFrom] || 0;
   };
 
-  const setMaxBalance = () => {
-    setSwapAmount(getAvailableBalance().toString());
+  const handleSwapMax = () => {
+    setSwapAmount(getSwapAvailableBalance().toString());
   };
 
-  const getEstimatedReturn = () => {
+  const getConversionRate = () => {
+    if (swapFrom === swapTo) return 1;
+    const priceFrom = swapFrom === 'USD' ? 1 : marketData[swapFrom]?.price || 0.05;
+    const priceTo = swapTo === 'USD' ? 1 : marketData[swapTo]?.price || 0.05;
+    return priceFrom / priceTo;
+  };
+
+  const getSwapEstimatedReturn = () => {
     const amt = parseFloat(swapAmount);
     if (isNaN(amt) || amt <= 0) return 0;
-
-    let usdValue = 0;
-    if (swapFrom === 'USD') {
-      usdValue = amt;
-    } else {
-      usdValue = amt * (marketData[swapFrom]?.price || 0);
-    }
-
-    if (swapTo === 'USD') {
-      return usdValue;
-    } else {
-      const toPrice = marketData[swapTo]?.price || 1;
-      return usdValue / toPrice;
-    }
+    return amt * getConversionRate();
   };
 
-  const handleSwap = () => {
+  const executeSwapTrade = () => {
     const amt = parseFloat(swapAmount);
-    const returnAmt = getEstimatedReturn();
-    if (isNaN(amt) || amt <= 0) return;
-
-    const success = onSwap(swapFrom, swapTo, amt, returnAmt);
-    if (success) {
-      setSwapAmount('');
-    } else {
-      setError("Insufficient funds for swap!");
-      setTimeout(() => setError(null), 2000);
+    if (isNaN(amt) || amt <= 0) {
+      triggerError('Please enter a valid swap quantity.');
+      return;
     }
+
+    const available = getSwapAvailableBalance();
+    if (available < amt) {
+      triggerError(`Insufficient ${swapFrom} funds available!`);
+      return;
+    }
+
+    const estimateReturn = getSwapEstimatedReturn();
+    const gasFeeUSD = 0.35; // Simulated gas cost representing Screenshot 3
+
+    if (balance < gasFeeUSD) {
+      triggerError('Insufficient USD Wallet balance to pay network exchange gas fees!');
+      return;
+    }
+
+    // Subtract from balance
+    if (swapFrom === 'USD') {
+      setWalletBalance(prev => prev - amt);
+    } else {
+      setTokenBalances(prev => ({ ...prev, [swapFrom]: prev[swapFrom] - amt }));
+    }
+
+    // Add to balance
+    if (swapTo === 'USD') {
+      setWalletBalance(prev => prev + estimateReturn - gasFeeUSD);
+    } else {
+      setTokenBalances(prev => ({ ...prev, [swapTo]: (prev[swapTo] || 0) + estimateReturn }));
+      setWalletBalance(prev => prev - gasFeeUSD);
+    }
+
+    addTransaction('swap', amt, `Swapped ${amt.toFixed(4)} ${swapFrom} for ${estimateReturn.toFixed(4)} ${swapTo}`);
+    triggerSuccess(`Exchanged ${amt} ${swapFrom} to ${estimateReturn.toFixed(4)} ${swapTo}!`);
+    setSwapAmount('');
   };
 
-  const handleSend = () => {
-    const success = onSend(10);
-    if (!success) {
-      setError("Insufficient Balance!");
-      setTimeout(() => setError(null), 2000);
-    }
+  // --- Aggregate Portfolio Home Metrics (Screenshot 5: Dashboard Overview) ---
+  const calculateTotalPortfolioValue = () => {
+    let sum = balance; // Start with USD cash balance
+    Object.entries(tokenBalances).forEach(([sym, amount]) => {
+      const price = marketData[sym]?.price || 0;
+      sum += amount * price;
+    });
+    return sum;
+  };
+
+  const totalPortfolioValue = calculateTotalPortfolioValue();
+
+  // Helpers
+  const triggerError = (msg: string) => {
+    setError(msg);
+    setTimeout(() => setError(null), 3500);
+  };
+
+  const triggerSuccess = (msg: string) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(null), 3500);
   };
 
   return (
@@ -1124,239 +1815,627 @@ function WalletSimulator({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-8"
     >
-      {/* Wallet Header */}
+      {/* Dynamic Top Wallet System Bar */}
       <div className="w-full flex flex-col sm:flex-row justify-between items-center bg-white border border-gray-100 p-4 rounded-3xl shadow-sm gap-4">
         <div className="flex items-center gap-4 w-full sm:w-auto">
-          <button onClick={onBack} className="p-3 hover:bg-gray-50 rounded-2xl transition-colors flex items-center justify-center gap-2 text-[#8b5e3c]">
-            <ArrowLeft className="w-5 h-5" /> Back
+          <button onClick={onBack} className="p-3 hover:bg-gray-50 rounded-2xl transition-colors flex items-center justify-center gap-2 text-[#8b5e3c] font-bold">
+            <ArrowLeft className="w-5 h-5" /> Home Page Mode
           </button>
           {lastSave && (
             <div className="flex items-center gap-1.5 text-[10px] text-[#8b5e3c] font-mono uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
-              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
               Synced: {lastSave.toLocaleTimeString()}
             </div>
           )}
         </div>
-        <div className="flex bg-gray-50 p-1 rounded-2xl w-full sm:w-auto border border-gray-100">
-          {(['portfolio', 'market', 'swap'] as const).map(tab => (
+        
+        {/* Navigation Tab Deck (Matches Screenshots' Tab Design) */}
+        <div className="flex bg-gray-50 p-1.5 rounded-2xl w-full sm:w-auto border border-gray-100 overflow-x-auto">
+          {([
+            { id: 'portfolio', label: 'Portfolio', icon: WalletCards },
+            { id: 'send', label: 'Send', icon: Send },
+            { id: 'receive', label: 'Receive', icon: Download },
+            { id: 'swap', label: 'Swap DEX', icon: ArrowRightLeft },
+            { id: 'farms', label: 'Yield Farms', icon: Flame }
+          ] as const).map(tab => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 sm:flex-none px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
-                activeTab === tab ? 'bg-[#c0a080] text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === tab.id ? 'bg-[#c0a080] text-white shadow-md' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100/50'
               }`}
             >
-              {tab}
+              <tab.icon className="w-3.5 h-3.5" />
+              {tab.label}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Main Core Area & Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           <AnimatePresence mode="wait">
+            
+            {/* TAB 1: PORTFOLIO MAIN TAB (Screenshot 5: Dashboard Overview) */}
             {activeTab === 'portfolio' && (
               <motion.div
                 key="tab-portfolio"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
                 className="space-y-8"
               >
-                {/* Main Card */}
-                <div className="bg-gradient-to-br from-emerald-600 to-teal-900 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group border border-white/10">
-                  <div className="absolute top-0 right-0 p-8">
-                    <Zap className="w-12 h-12 text-white/20 fill-current" />
+                {/* Simulated Ledger Dashboard Card */}
+                <div className="bg-gradient-to-br from-emerald-700 via-teal-900 to-slate-900 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden text-white border border-white/10">
+                  <div className="absolute top-0 right-0 p-8 text-neutral-400/20">
+                    <Sparkles className="w-24 h-24 stroke-[1]" />
                   </div>
-                  <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mb-32 filter blur-3xl" />
-                  
+                  <div className="absolute -bottom-12 -right-12 w-80 h-80 bg-emerald-500/15 rounded-full filter blur-3xl pointer-events-none" />
+
                   <div className="space-y-6 relative z-10">
-                    <div className="flex justify-between items-start">
-                      <span className="font-mono text-white/60 tracking-[0.3em] uppercase text-xs">Verse Platinum</span>
-                      <div className="w-12 h-8 rounded-md bg-white/20 backdrop-blur-sm border border-white/10" />
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <p className="text-white/60 text-sm font-medium">Total App Balance</p>
-                      <h2 className="text-5xl font-black text-white tracking-tighter">
-                        ${balance.toLocaleString()} <span className="text-2xl font-medium text-emerald-300">USD</span>
-                      </h2>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
+                        <span className="font-mono text-white/70 tracking-[0.25em] text-[10px] uppercase font-bold">VERSE INTEGRATED PORTFOLIO</span>
+                      </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4">
-                      <button onClick={() => onReceive(10)} className="flex-1 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
-                        <Plus className="w-5 h-5" /> Deposit
+                    <div className="space-y-1">
+                      <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Total Value Balance</p>
+                      <div className="flex items-baseline gap-2">
+                        <h2 className="text-5xl font-black text-white tracking-tighter">
+                          ${totalPortfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </h2>
+                        <span className="text-xl font-bold text-gray-300">USD</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold bg-emerald-500/10 px-3 py-1 rounded-full w-max mt-2 border border-emerald-500/20">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        <span>+4.28% Daily Yield</span>
+                      </div>
+                    </div>
+
+                    {/* Quick Access Grid Actions (Matches Screenshot 5 layout icons) */}
+                    <div className="grid grid-cols-4 gap-3 pt-6 border-t border-white/5">
+                      <button 
+                        onClick={() => setActiveTab('send')}
+                        className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/15 active:scale-95 rounded-2xl transition-all cursor-pointer text-center"
+                      >
+                        <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-300"><ArrowUpRight className="w-4 h-4" /></div>
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Send</span>
                       </button>
-                      <button onClick={handleSend} className="flex-1 py-4 bg-black/20 hover:bg-black/30 backdrop-blur-md rounded-2xl font-bold flex items-center justify-center gap-2 transition-all">
-                        <Minus className="w-5 h-5" /> Withdraw
+                      <button 
+                        onClick={() => setActiveTab('receive')}
+                        className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/15 active:scale-95 rounded-2xl transition-all cursor-pointer text-center"
+                      >
+                        <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-300"><ArrowDownLeft className="w-4 h-4" /></div>
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Receive</span>
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('swap')}
+                        className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/15 active:scale-95 rounded-2xl transition-all cursor-pointer text-center"
+                      >
+                        <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-300"><RefreshCw className="w-4 h-4" /></div>
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Swap DEX</span>
+                      </button>
+                      <button 
+                        onClick={() => setActiveTab('farms')}
+                        className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/15 active:scale-95 rounded-2xl transition-all cursor-pointer text-center"
+                      >
+                        <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-300"><Flame className="w-4 h-4" /></div>
+                        <span className="text-[10px] uppercase font-bold tracking-wider">Farms</span>
                       </button>
                     </div>
+
                   </div>
                 </div>
 
-                {/* Assets List */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-bold flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-emerald-500" /> Your Assets
+                {/* Portfolio Visual Balance History Interactive Curve Chart */}
+                <div className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
+                  <h4 className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400 mb-4 flex items-center justify-between">
+                    <span>PORTFOLIO GROWTH PROJECTIONS</span>
+                    <span className="text-emerald-500 font-bold">ARCADE VALUE TRACK</span>
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {SUPPORTED_TOKENS.map(token => (
-                      <div key={token.symbol} className="bg-white border border-gray-100 p-6 rounded-[2rem] hover:border-[#c0a080]/30 transition-colors shadow-sm">
-                        <div className="flex items-center gap-4 mb-4">
-                          <img src={token.icon} alt={token.symbol} className="w-10 h-10 rounded-full shadow-md border border-gray-50" referrerPolicy="no-referrer" />
+                  <div className="w-full h-24 relative mt-2">
+                    <svg className="w-full h-full overflow-visible" viewBox="0 0 100 24" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                          <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      {/* Interactive area and stroke curve representing live coin trends */}
+                      <path 
+                        d="M0,18 Q15,8 30,12 T60,5 T85,10 T100,2" 
+                        fill="none" 
+                        stroke="#10b981" 
+                        strokeWidth="1.2"
+                      />
+                      <path 
+                        d="M0,18 Q15,8 30,12 T60,5 T85,10 T100,2 L100,30 L0,30 Z" 
+                        fill="url(#chartGradient)"
+                      />
+                      <circle cx="100" cy="2" r="1.5" fill="#10b981" className="animate-pulse" />
+                    </svg>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px] font-mono text-gray-400 mt-2">
+                    <span>1D AGO</span>
+                    <span>12H AGO</span>
+                    <span>6H AGO</span>
+                    <span>LIVE</span>
+                  </div>
+                </div>
+
+                {/* Active Holdings List (Screenshot 5: Coin asset rows list) */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center px-1">
+                    <h4 className="text-sm font-black uppercase text-gray-900 tracking-wider flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-emerald-500" /> Active Holdings
+                    </h4>
+                    <span className="text-xs text-gray-400 font-mono italic">TAP TABS TO INTERACT</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Render standard USD Balance first */}
+                    <div className="bg-[#f8fafc]/75 border border-slate-100 p-5 rounded-3xl hover:border-[#c0a080]/30 transition-all flex flex-col justify-between shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white font-extrabold shadow-sm">
+                            <Coins className="w-5 h-5 text-slate-950" />
+                          </div>
                           <div>
-                            <p className="font-bold text-gray-900">{token.name}</p>
-                            <p className="text-xs text-gray-400 font-mono">{token.symbol}</p>
+                            <p className="font-extrabold text-sm text-slate-800">Total Verse</p>
+                            <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-600">Ecosystem Assets</p>
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-2xl font-black text-gray-900">{tokenBalances[token.symbol]?.toFixed(4) || '0.0000'}</p>
-                          <p className="text-sm text-gray-400 font-mono">
-                            ≈ ${( (tokenBalances[token.symbol] || 0) * (marketData[token.symbol]?.price || 0) ).toLocaleString()}
-                          </p>
-                        </div>
+                        <span className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/15 font-mono font-bold px-2.5 py-0.5 rounded-full uppercase">VERSE</span>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-3xl font-black text-slate-900">{balance.toLocaleString()} VERSE</p>
+                        <p className="text-xs text-slate-400 font-mono">Primary Unified Wallet Balance</p>
+                      </div>
+                    </div>
+
+                    {SUPPORTED_TOKENS.slice(0, 5).map(token => {
+                      const coinBalance = tokenBalances[token.symbol] || 0;
+                      const price = marketData[token.symbol]?.price || 0;
+                      const valUSD = coinBalance * price;
+                      const pctChange = marketData[token.symbol]?.change24h || 1.8;
+
+                      return (
+                        <div key={token.symbol} className="bg-white border border-gray-100 p-5 rounded-3xl hover:border-[#c0a080]/30 transition-all flex flex-col justify-between shadow-sm group">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <img src={token.icon} alt={token.symbol} className="w-10 h-10 rounded-full shadow-sm" referrerPolicy="no-referrer" />
+                              <div>
+                                <p className="font-extrabold text-sm text-gray-900">{token.name}</p>
+                                <p className="text-xs text-gray-400 font-mono font-bold">{token.symbol}</p>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${dctStyle(pctChange)}`}>
+                              {pctChange > 0 ? '+' : ''}{pctChange.toFixed(2)}%
+                            </span>
+                          </div>
+                          <div>
+                            <div className="flex items-baseline justify-between">
+                              <p className="text-2xl font-black text-gray-900">{coinBalance.toFixed(4)}</p>
+                              <span className="text-xs font-mono text-gray-500 font-bold">≈ ${valUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                            </div>
+                            
+                            {/* Visual mini line chart (Inline sparkline representing Screenshot 5 coin miniature charts) */}
+                            <div className="h-4 flex items-end gap-0.5 mt-2 overflow-hidden opacity-40 group-hover:opacity-85 transition-all">
+                              {Array.from({ length: 12 }).map((_, i) => {
+                                const hVal = Math.sin(i * 0.5) * 5 + 8;
+                                return (
+                                  <div 
+                                    key={i} 
+                                    style={{ height: `${hVal * 8}%` }}
+                                    className={`w-1 rounded-full flex-1 ${pctChange >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`} 
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {activeTab === 'market' && (
+            {/* TAB 2: SEND ASSET TAB (Screenshot 4: Send Asset Screen & Slide to Send Slider) */}
+            {activeTab === 'send' && (
               <motion.div
-                key="tab-market"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                key="tab-send"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <h4 className="text-lg font-bold flex items-center gap-2">
-                      <CandlestickChart className="w-5 h-5 text-emerald-500" /> Live Market Feed
-                    </h4>
-                    <p className="text-[10px] text-[#8b5e3c] font-mono">Real-time data from global exchanges</p>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-xs font-mono text-emerald-500 animate-pulse flex items-center gap-1">
-                      <Zap className="w-3 h-3 fill-current" /> Live Connection
-                    </span>
-                    <span className="text-[9px] text-[#5e402a] font-mono uppercase tracking-tighter">
-                      Updated: {lastSync.toLocaleTimeString()}
-                    </span>
-                  </div>
+                  <h4 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <Send className="w-5 h-5 text-emerald-500" /> Send Cryptocurrency
+                  </h4>
+                  <button 
+                    onClick={() => {
+                      setRecipientAddress(getWalletAddress(sendToken));
+                      triggerSuccess('Pre-filled mock delivery terminal address!');
+                    }} 
+                    className="text-[10px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full font-bold border border-emerald-100 transition-colors uppercase tracking-wider"
+                  >
+                    Use Demo Address
+                  </button>
                 </div>
 
-                <div className="bg-white border border-gray-100 rounded-[2rem] overflow-hidden shadow-xl">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 text-left border-b border-gray-100">
-                      <tr>
-                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-400">Asset</th>
-                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-400">Price</th>
-                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-400">24h Change</th>
-                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-400 hidden sm:table-cell">Future Trend</th>
-                        <th className="px-6 py-4 text-xs font-mono uppercase tracking-widest text-gray-400 hidden md:table-cell">Chart</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {SUPPORTED_TOKENS.map(token => {
-                        const data = marketData[token.symbol];
-                        if (!data) return null; // Protective check
-                        
+                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
+                  
+                  {/* Select Coin */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400">Select Asset to Transfer</label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {['VERSE', 'BTC', 'ETH', 'SOL', 'USDT'].map(sym => {
+                        const iconUrl = sym === 'VERSE' ? 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png' : SUPPORTED_TOKENS.find(t => t.symbol === sym)?.icon || '';
                         return (
-                          <tr key={token.symbol} className="hover:bg-gray-50 transition-colors group">
-                            <td className="px-6 py-6">
-                              <div className="flex items-center gap-3">
-                                <img src={token.icon} alt={token.symbol} className="w-8 h-8 rounded-full shadow-sm" referrerPolicy="no-referrer" />
-                                <div>
-                                  <p className="font-bold text-gray-900">{token.name}</p>
-                                  <p className="text-[10px] font-mono text-gray-400">{token.symbol}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-6">
-                              <motion.p
-                                key={data.price}
-                                initial={{ opacity: 0.5 }}
-                                animate={{ opacity: 1 }}
-                                className="font-mono font-bold text-gray-900 text-sm"
-                              >
-                                ${data.price < 1 ? data.price.toFixed(4) : data.price.toLocaleString()}
-                              </motion.p>
-                            </td>
-                            <td className="px-6 py-6">
-                              <span className={`text-sm font-bold ${data.change24h >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                {data.change24h >= 0 ? '+' : ''}{data.change24h.toFixed(2)}%
-                              </span>
-                            </td>
-                            <td className="px-6 py-6 hidden sm:table-cell">
-                              <div className="flex items-center gap-2">
-                                {data.prediction === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500" />}
-                                {data.prediction === 'down' && <TrendingUp className="w-4 h-4 text-red-500 rotate-180" />}
-                                {data.prediction === 'steady' && <Minus className="w-4 h-4 text-gray-300" />}
-                                <span className={`text-xs font-bold uppercase tracking-wider ${
-                                  data.prediction === 'up' ? 'text-emerald-500' : 
-                                  data.prediction === 'down' ? 'text-red-500' : 
-                                  'text-gray-300'
-                                }`}>
-                                  {data.prediction || 'Steady'}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-6 hidden md:table-cell">
-                              <div className="flex items-end gap-1 h-8">
-                                {data.sparkline.map((val, i) => {
-                                  const max = Math.max(...(data.sparkline || [0.0001]), 0.0001);
-                                  const height = max > 0 ? ( (val || 0) / max) * 100 : 0;
-                                  return (
-                                    <div 
-                                      key={i} 
-                                      className={`w-1 rounded-full ${data.change24h >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
-                                      style={{ 
-                                        height: `${height}%`,
-                                        opacity: 0.3 + (i / data.sparkline.length) * 0.7
-                                      }}
-                                    />
-                                  );
-                                })}
-                              </div>
-                            </td>
-                          </tr>
+                          <button
+                            key={sym}
+                            type="button"
+                            onClick={() => {
+                              setSendToken(sym);
+                              setRecipientAddress('');
+                            }}
+                            className={`p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                              sendToken === sym 
+                                ? 'bg-emerald-50 border-emerald-400 text-emerald-700 font-bold scale-[1.03] shadow-sm' 
+                                : 'bg-slate-50 border-gray-100 text-gray-500 hover:bg-gray-100/50'
+                            }`}
+                          >
+                            <img src={iconUrl} alt={sym} className="w-5 h-5 rounded-full" referrerPolicy="no-referrer" />
+                            <span className="text-[10px] font-mono font-bold tracking-tight">{sym}</span>
+                          </button>
                         );
                       })}
-                    </tbody>
-                  </table>
+                    </div>
+                  </div>
+
+                  {/* Recipient Address */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400">Recipient Address</label>
+                      <span className="text-[9px] text-[#8b5e3c] font-mono bg-slate-50 px-2 py-0.5 rounded border border-gray-100">
+                        Type address manually or click Demo
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3 border border-gray-100 focus-within:border-emerald-300 transition-all">
+                      <QrCode className="w-5 h-5 text-gray-400" />
+                      <input 
+                        type="text" 
+                        value={recipientAddress}
+                        onChange={(e) => setRecipientAddress(e.target.value)}
+                        placeholder={`Address (e.g., ${sendToken === 'BTC' ? 'bc1q...' : '0x...'})`}
+                        className="bg-transparent border-none outline-none flex-1 text-sm text-gray-900 placeholder-gray-400 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Amount Entry & Convert Toggles (Matches Dual denomination design) */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400">Transfer Quantity</label>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSendAmount(getSendLimit().toString());
+                          setSendInUSD(false);
+                        }}
+                        className="text-[10px] font-mono bg-[#c0a080]/15 hover:bg-[#c0a080]/25 text-[#8b5e3c] px-3 py-0.5 rounded-full font-bold transition-all"
+                      >
+                        MAX: {getSendLimit().toFixed(4)} {sendToken}
+                      </button>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-between border border-gray-100">
+                      <div className="flex-1">
+                        <input 
+                          type="number" 
+                          value={sendAmount}
+                          onChange={(e) => setSendAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="bg-transparent border-none outline-none text-2xl font-black text-gray-900 placeholder-gray-400 w-full"
+                        />
+                        <div className="text-xs font-mono text-gray-400 mt-1">
+                          {sendInUSD ? (
+                            `≈ ${(parseFloat(sendAmount || '0') / (marketData[sendToken]?.price || 1)).toFixed(4)} ${sendToken}`
+                          ) : (
+                            `≈ $${(parseFloat(sendAmount || '0') * (marketData[sendToken]?.price || 0.05)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`
+                          )}
+                        </div>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => setSendInUSD(!sendInUSD)}
+                        className="flex items-center gap-1 bg-white hover:bg-slate-100 border border-gray-200 px-3 py-2 rounded-xl text-xs font-bold text-gray-700 transition-all font-mono"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        {sendInUSD ? 'USD Mode' : `${sendToken} Mode`}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Gas Fee Speed Cards (Matches Screenshot 4 Gas Options card details) */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400">Network Gas Speed Fee</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {([
+                        { id: 'economy', label: 'Economy', cost: 0.15, time: '~10 Mins' },
+                        { id: 'regular', label: 'Regular', cost: 0.45, time: '~2 Mins' },
+                        { id: 'priority', label: 'Priority', cost: 1.25, time: '~15 Secs' }
+                      ] as const).map(tier => (
+                        <button
+                          key={tier.id}
+                          type="button"
+                          onClick={() => setSendFeeSpeed(tier.id)}
+                          className={`p-3 rounded-2xl border text-left transition-all ${
+                            sendFeeSpeed === tier.id 
+                              ? 'bg-emerald-50/50 border-emerald-400 text-emerald-800' 
+                              : 'bg-slate-50/50 border-gray-100 text-gray-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="font-bold text-xs">{tier.label}</div>
+                          <div className="font-mono text-sm font-black text-gray-900 mt-1">${tier.cost}</div>
+                          <div className="text-[9px] font-mono text-gray-400 mt-0.5 uppercase">{tier.time}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Interactive Sliding Button ("Slide to Send" - Matches Screenshot 4 slider system) */}
+                  <div className="relative mt-8 pt-4">
+                    <div className="bg-slate-100 h-14 rounded-2xl w-full flex items-center justify-center relative overflow-hidden border border-gray-100">
+                      
+                      {/* Interactive Drag Handle (Drag to complete dispatch) */}
+                      <motion.div 
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 300 }}
+                        dragElastic={0}
+                        onDrag={(event, info) => {
+                          setSliderPosition(info.offset.x);
+                        }}
+                        onDragStart={() => setIsSliding(true)}
+                        onDragEnd={(event, info) => {
+                          setIsSliding(false);
+                          if (info.offset.x >= 280) {
+                            executeSendFunds();
+                          } else {
+                            setSliderPosition(0);
+                          }
+                        }}
+                        style={{ x: sliderPosition }}
+                        animate={isSliding ? undefined : { x: 0 }}
+                        className="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-2xl shadow-lg flex items-center justify-center cursor-ew-resize active:scale-95 absolute left-0 z-25 text-white"
+                      >
+                        <ChevronRight className="w-6 h-6 animate-pulse" />
+                      </motion.div>
+
+                      {/* Sliding visual rail info */}
+                      <span className="text-xs uppercase tracking-[0.25em] font-black pointer-events-none font-mono text-slate-400 select-none">
+                        {sliderPosition > 220 ? 'RELEASE TO DISPATCH!' : 'Slide To Send Assets'}
+                      </span>
+
+                      {/* Color Fill underneath slider */}
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-emerald-500/10 pointer-events-none transition-all duration-75"
+                        style={{ width: `${Math.max(sliderPosition + 35, 0)}px` }}
+                      />
+                    </div>
+                  </div>
+
                 </div>
               </motion.div>
             )}
 
+            {/* TAB 3: RECEIVE ASSET TAB (Screenshot 2: Receive & Invoice) */}
+            {activeTab === 'receive' && (
+              <motion.div
+                key="tab-receive"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <Download className="w-5 h-5 text-emerald-500" /> Receive Assets
+                  </h4>
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-gray-400">My Addresses Portal</span>
+                </div>
+
+                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden flex flex-col items-center">
+                  
+                  {/* Receive Asset pick */}
+                  <div className="w-full space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400 block text-center">CHOOSE COIN ADDRESS</label>
+                    <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100 max-w-sm mx-auto">
+                      {['VERSE', 'BTC', 'ETH', 'SOL'].map(sym => (
+                        <button
+                          key={sym}
+                          onClick={() => {
+                            setReceiveToken(sym);
+                            setRequestInvoiceAmount('');
+                          }}
+                          className={`flex-1 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+                            receiveToken === sym ? 'bg-[#c0a080] text-white shadow' : 'text-gray-400 hover:text-gray-700'
+                          }`}
+                        >
+                          {sym}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Interactive set request payment amount */}
+                  <div className="w-full max-w-xs space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-[0.1em] text-gray-400 block text-center">Set Request Billing Amount (Optional)</label>
+                    <div className="bg-gray-50 rounded-xl px-3 py-1.5 border border-gray-100 flex items-center gap-1 text-slate-800 focus-within:border-[#c0a080] justify-center text-sm">
+                      <span className="font-bold text-[#8b5e3c] font-mono">{receiveToken}:</span>
+                      <input 
+                        type="number"
+                        value={requestInvoiceAmount}
+                        onChange={(e) => setRequestInvoiceAmount(e.target.value)}
+                        placeholder="Request Amount (e.g. 100)"
+                        className="bg-transparent border-none outline-none font-bold text-xs text-center font-mono flex-1 w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dynamic generated payment request bill description */}
+                  {requestInvoiceAmount && parseFloat(requestInvoiceAmount) > 0 && (
+                    <motion.div 
+                      initial={{ scale: 0.95, opacity: 0 }} 
+                      animate={{ scale: 1, opacity: 1 }} 
+                      className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 text-center mt-2 max-w-md w-full"
+                    >
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-800 font-bold block mb-1">PAYMENT INVOICE BILL GENERATED</span>
+                      <h5 className="text-lg font-black text-emerald-900 font-mono">
+                        {requestInvoiceAmount} {receiveToken}
+                      </h5>
+                      <p className="text-xs text-emerald-600 font-mono mt-0.5">
+                        ≈ ${(parseFloat(requestInvoiceAmount) * (marketData[receiveToken]?.price || 0.05)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {/* Elegant High-Resolution Art QR Code container (Matches Screenshot 2 custom stylized QR layout) */}
+                  <div className="relative p-6 bg-[#f8fafc] rounded-[2rem] border border-gray-100 shadow-inner flex flex-col items-center justify-center my-4">
+                    <div className="w-48 h-48 bg-white rounded-3xl p-4 border border-gray-100 shadow flex items-center justify-center relative overflow-hidden group">
+                      
+                      {/* Generated SVG Mock QR Layout which matches the actual coin selected */}
+                      <svg viewBox="0 0 100 100" className="w-full h-full fill-slate-800 selection:bg-none">
+                        <path d="M5,5 h30 v30 h-30 z M15,15 h10 v10 h-10 z" />
+                        <path d="M65,5 h30 v30 h-30 z M75,15 h10 v10 h-10 z" />
+                        <path d="M5,65 h30 v30 h-30 z M15,75 h10 v10 h-10 z" />
+                        
+                        <rect x="42" y="10" width="8" height="8" />
+                        <rect x="52" y="25" width="8" height="12" />
+                        <rect x="10" y="45" width="12" height="8" />
+                        <rect x="25" y="45" width="22" height="15" />
+                        <rect x="52" y="45" width="16" height="8" />
+                        <rect x="42" y="65" width="12" height="8" />
+                        <rect x="62" y="60" width="8" height="14" />
+                        <rect x="75" y="52" width="20" height="8" />
+                        <rect x="80" y="70" width="12" height="20" />
+                        <rect x="55" y="80" width="15" height="10" />
+                        
+                        <circle cx="50" cy="50" r="1.5" className="fill-emerald-500" />
+                      </svg>
+
+                      {/* Coin Watermark in center of QR code */}
+                      <div className="absolute w-12 h-12 bg-white rounded-2xl shadow-md border border-gray-100 flex items-center justify-center p-1.5">
+                        <img 
+                          src={receiveToken === 'VERSE' ? 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png' : SUPPORTED_TOKENS.find(t => t.symbol === receiveToken)?.icon || ''} 
+                          alt="Coin Logo" 
+                          className="w-full h-full rounded-full"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] font-mono uppercase tracking-[0.2em] font-black text-[#8b5e3c] mt-3">Scan code to credit client</p>
+                  </div>
+
+                  {/* Public Key Display and clipboard click selectors (Matches Screenshot 2 share controls) */}
+                  <div className="w-full space-y-4 max-w-md">
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+                      <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 block mb-1">Your Public Address</span>
+                      <p className="font-mono text-xs text-gray-700 font-extrabold select-all break-all px-2">
+                        {getWalletAddress(receiveToken)}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={handleCopyClipboard}
+                        className="flex items-center justify-center gap-2 py-4 bg-[#c0a080] hover:bg-[#d4b496] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-md cursor-pointer text-sm"
+                      >
+                        {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <QrCode className="w-4 h-4" />}
+                        {copied ? 'Address Copied!' : 'Copy Public Key'}
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          const demoAmt = requestInvoiceAmount ? parseFloat(requestInvoiceAmount) : 50;
+                          setWalletBalance(prev => prev + (demoAmt * (marketData[receiveToken]?.price || 0.05)));
+                          addTransaction('receive', demoAmt, `Deposited mock ${receiveToken} deposit via receipt Scan`);
+                          triggerSuccess(`Mock transaction simulator credited your wallet with ${demoAmt} ${receiveToken}!`);
+                        }}
+                        className="flex items-center justify-center gap-2 py-4 bg-[#003366] hover:bg-[#002244] active:scale-95 text-white font-bold rounded-2xl transition-all shadow-md cursor-pointer text-sm"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        Simulate Deposit
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+
+            {/* TAB 4: TOKEN SWAP TAB (Screenshot 3: Token Swap Interface) */}
             {activeTab === 'swap' && (
               <motion.div
                 key="tab-swap"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
                 className="space-y-6"
               >
-                <h4 className="text-lg font-bold flex items-center gap-2">
-                  <ArrowRightLeft className="w-5 h-5 text-emerald-500" /> Token Swap
-                </h4>
-                
-                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <ArrowRightLeft className="w-5 h-5 text-emerald-500" /> Token Swap (DEX)
+                  </h4>
+                  <button 
+                    type="button"
+                    onClick={() => setShowSlippageTooltip(!showSlippageTooltip)}
+                    className="text-gray-400 hover:text-slate-800 flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
+                  >
+                    <Info className="w-4 h-4" /> Explain Slippage
+                  </button>
+                </div>
+
+                {/* Optional help explanation badge */}
+                {showSlippageTooltip && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }} 
+                    animate={{ height: 'auto', opacity: 1 }} 
+                    className="bg-[#f8fafc] border border-gray-200 p-5 rounded-3xl text-xs text-gray-600 leading-relaxed space-y-2 mt-1"
+                  >
+                    <p className="font-bold text-gray-800">What is Slippage Tolerance?</p>
+                    <p>Slippage refers to the price difference between what you expect to pay and the final price paid at swap execution. A tolerance filter prevents trades executing if high volatility changes trade returns beyond your safety limits.</p>
+                  </motion.div>
+                )}
+
+                <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl relative overflow-hidden">
+                  
+                  {/* YOU PAY (FROM) AREA */}
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center px-2">
-                      <label className="text-xs font-mono uppercase tracking-widest text-gray-400">You Pay</label>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-[10px] text-gray-400 font-mono">Available: {getAvailableBalance().toFixed(4)}</span>
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400">Available Funds (Pay)</label>
+                      <div className="flex gap-1.5 items-center">
+                        <span className="text-[10px] text-gray-400 font-mono">Available: {getSwapAvailableBalance().toFixed(4)}</span>
                         <button 
-                          onClick={setMaxBalance}
-                          className="text-[10px] bg-[#c0a080]/10 text-[#8b5e3c] px-2 py-0.5 rounded-full hover:bg-[#c0a080]/20 transition-colors font-bold"
+                          onClick={handleSwapMax}
+                          className="text-[10px] bg-[#c0a080]/15 hover:bg-[#c0a080]/25 text-[#8b5e3c] px-2 py-0.5 rounded-full transition-colors font-black"
                         >
                           MAX
                         </button>
                       </div>
                     </div>
-                    <div className="bg-gray-50 rounded-3xl p-4 flex items-center gap-4 focus-within:border-[#c0a080] border border-gray-100 transition-all">
+                    <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-4 focus-within:border-emerald-300 border border-gray-100 transition-all">
                       <select 
                         value={swapFrom}
                         onChange={(e) => {
@@ -1364,9 +2443,9 @@ function WalletSimulator({
                           setSwapFrom(val);
                           if (val !== 'USD' && swapTo !== 'USD') setSwapTo('USD');
                         }}
-                        className="bg-transparent border-none outline-none font-bold text-lg min-w-[100px] text-gray-900"
+                        className="bg-transparent border-none outline-none font-black text-lg min-w-[110px] text-gray-900 cursor-pointer"
                       >
-                        <option value="USD">USD</option>
+                        <option value="USD">USD ($)</option>
                         {SUPPORTED_TOKENS.map(t => <option key={t.symbol} value={t.symbol}>{t.symbol}</option>)}
                       </select>
                       <input 
@@ -1379,22 +2458,24 @@ function WalletSimulator({
                     </div>
                   </div>
 
-                  <div className="flex justify-center -my-2 relative z-10">
+                  {/* REVERSAL SWAP INTERACTION ICON */}
+                  <div className="flex justify-center -my-3 relative z-10">
                     <button 
                       onClick={() => {
                         const temp = swapFrom;
                         setSwapFrom(swapTo);
                         setSwapTo(temp);
                       }}
-                      className="p-3 bg-[#c0a080] text-white rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-lg"
+                      className="p-3.5 bg-gradient-to-tr from-[#c0a080] to-[#b09070] text-white rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-md cursor-pointer"
                     >
-                      <ArrowRightLeft className="w-5 h-5" />
+                      <RefreshCw className="w-5 h-5 rotate-45" />
                     </button>
                   </div>
 
+                  {/* YOU RECEIVE (TO) AREA */}
                   <div className="space-y-2">
-                    <label className="text-xs font-mono uppercase tracking-widest text-gray-400 ml-2">You Receive (Est.)</label>
-                    <div className="bg-gray-50 rounded-3xl p-6 flex items-center justify-between border border-gray-100">
+                    <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400 px-1 ml-1">Est. Conversion Yield (Receive)</label>
+                    <div className="bg-slate-50/50 rounded-2xl p-5 flex items-center justify-between border border-gray-100">
                       <select 
                         value={swapTo}
                         onChange={(e) => {
@@ -1402,87 +2483,278 @@ function WalletSimulator({
                           setSwapTo(val);
                           if (val !== 'USD' && swapFrom !== 'USD') setSwapFrom('USD');
                         }}
-                        className="bg-transparent border-none outline-none font-bold text-lg min-w-[100px] text-gray-900"
+                        className="bg-transparent border-none outline-none font-black text-lg min-w-[110px] text-gray-900 cursor-pointer"
                       >
-                        <option value="USD">USD</option>
+                        <option value="USD">USD ($)</option>
                         {SUPPORTED_TOKENS.map(t => <option key={t.symbol} value={t.symbol}>{t.symbol}</option>)}
                       </select>
-                      <p className="text-2xl font-black text-[#8b5e3c]">
-                        {getEstimatedReturn().toFixed(swapTo === 'USD' ? 2 : 6)}
+                      <p className="text-2xl font-black text-[#8b5e3c] font-mono leading-none">
+                        {getSwapEstimatedReturn().toFixed(swapTo === 'USD' ? 2 : 6)}
                       </p>
                     </div>
                   </div>
 
+                  {/* Interactive Rate conversions stats */}
+                  <div className="flex justify-between items-center bg-gray-50/40 p-3 rounded-xl text-xs font-mono text-gray-500 border border-slate-100/50 px-4">
+                    <span>Rate exchange conversion:</span>
+                    <span className="font-extrabold text-gray-800">
+                      1 {swapFrom} = {getConversionRate().toFixed(swapTo === 'USD' ? 2 : 6)} {swapTo}
+                    </span>
+                  </div>
+
+                  {/* Slippage tolerance cards configuration panel (Matches Screenshot 3 design details) */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono uppercase tracking-[0.2em] text-gray-400 px-1">Slippage Tolerance Options</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[0.5, 1.0, 3.0].map(val => (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => {
+                            setSwapSlippage(val);
+                            setCustomSlippageInput('');
+                          }}
+                          className={`py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                            swapSlippage === val && !customSlippageInput
+                              ? 'bg-emerald-50 border-emerald-400 text-emerald-800' 
+                              : 'bg-slate-50 border-gray-50 text-gray-400 hover:bg-slate-100/50'
+                          }`}
+                        >
+                          {val}%
+                        </button>
+                      ))}
+                      <div className="relative">
+                        <input 
+                          type="number"
+                          value={customSlippageInput}
+                          onChange={(e) => {
+                            setCustomSlippageInput(e.target.value);
+                            const valParsed = parseFloat(e.target.value);
+                            if (!isNaN(valParsed)) setSwapSlippage(valParsed);
+                          }}
+                          placeholder="Custom %"
+                          className="w-full bg-slate-50 border border-gray-10s text-right rounded-xl py-2 px-3 text-xs font-semibold focus:border-emerald-300 outline-none text-slate-750 placeholder-gray-400 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Execution Fees Summary */}
+                  <div className="space-y-2.5 pt-4 border-t border-gray-50 text-xs text-gray-500 font-mono">
+                    <div className="flex justify-between items-center">
+                      <span>Liquidity Platform Fee:</span>
+                      <span className="text-gray-800 font-bold">0.3% ($0.00 USD)</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Network Gas Processing Fee:</span>
+                      <span className="text-emerald-600 font-bold">$0.35 USD (12 Gwei)</span>
+                    </div>
+                  </div>
+
+                  {/* Execution Swap Button */}
                   <button 
-                    onClick={handleSwap}
+                    onClick={executeSwapTrade}
                     disabled={!swapAmount || parseFloat(swapAmount) <= 0}
-                    className="w-full py-5 bg-[#c0a080] hover:bg-[#d4b496] text-white font-black rounded-3xl transition-all shadow-md disabled:opacity-50 disabled:grayscale uppercase tracking-widest"
+                    className="w-full py-5 bg-[#c0a080] hover:bg-[#d4b496] active:scale-[0.99] text-white font-black rounded-3xl transition-all shadow-md disabled:opacity-50 disabled:grayscale uppercase tracking-widest cursor-pointer text-sm"
                   >
-                    Confirm Swap
+                    Slide to Confirm Token Exchange
                   </button>
                 </div>
+              </motion.div>
+            )}
+
+            {/* TAB 5: YIELD FARMS & STAKING POOLS (Screenshot 1: Farms & Pools) */}
+            {activeTab === 'farms' && (
+              <motion.div
+                key="tab-farms"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                className="space-y-6"
+              >
+                <div className="flex flex-col">
+                  <h4 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-500 fill-orange-500" /> Verse Liquidity Farms
+                  </h4>
+                  <p className="text-xs text-[#8b5e3c] font-mono">Stake VERSE tokens to harvest compound mining reward yields!</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  {FARMS.map(farm => {
+                    const stakedVal = stakedAmounts[farm.id] || 0;
+                    const accumulatedReward = unclaimedRewards[farm.id] || 0;
+
+                    return (
+                      <div 
+                        key={farm.id}
+                        className="bg-white border border-gray-150 p-6 rounded-[2.5rem] shadow-md hover:shadow-lg transition-all relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-400/5 rounded-full filter blur-3xl pointer-events-none" />
+                        
+                        {/* Farm Header */}
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex items-center gap-4">
+                            {/* Overlapping double coin badge representing pool holdings */}
+                            <div className="flex -space-x-4 relative">
+                              <img src={farm.icon1} className="w-11 h-11 rounded-full border-2 border-white relative z-20 shadow-md" referrerPolicy="no-referrer" />
+                              <img src={farm.icon2} className="w-11 h-11 rounded-full border-2 border-white relative z-10 shadow-md" referrerPolicy="no-referrer" />
+                            </div>
+                            <div>
+                              <h5 className="font-extrabold text-base text-gray-900">{farm.name}</h5>
+                              <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">{farm.pair} Liquidity pair</p>
+                            </div>
+                          </div>
+                          
+                          {/* APY Rewards Rate */}
+                          <div className="text-right">
+                            <span className="text-[9px] font-mono uppercase tracking-[0.2em] text-gray-400 block font-bold">ANNUAL REWARDS APY</span>
+                            <span className="text-2xl font-black text-emerald-600 font-mono tracking-tight">{farm.apy}%</span>
+                          </div>
+                        </div>
+
+                        {/* Staked balances vs rewards panel */}
+                        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-5 rounded-3xl border border-dashed border-gray-250 mb-6">
+                          <div>
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block font-bold">YOUR STAKED PRINCIPAL</span>
+                            <p className="text-xl font-mono font-black text-slate-800 mt-1">{stakedVal.toFixed(2)} VERSE</p>
+                            <span className="text-[10px] text-slate-400 block font-mono">≈ ${(stakedVal * (marketData['VERSE']?.price || 0.05)).toFixed(2)} USD</span>
+                          </div>
+
+                          <div className="border-l border-gray-250 pl-5 relative flex flex-col justify-between">
+                            <div>
+                              <span className="text-[10px] font-mono uppercase tracking-widest text-[#8b5e3c] block font-bold">UNCLAIMED REWARDS ACCRUED</span>
+                              <p className="text-xl font-mono font-black text-rose-600 mt-1">{accumulatedReward.toFixed(5)} VERSE</p>
+                            </div>
+                            
+                            {/* Claim/Harvest buttons */}
+                            {accumulatedReward > 0 && (
+                              <button
+                                onClick={() => handleHarvest(farm.id)}
+                                className="mt-2 text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 px-3 py-1 bg-white items-center gap-1 font-bold rounded-lg uppercase tracking-wider w-max transition-all animate-pulse"
+                              >
+                                HARVEST REWARDS
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action buttons (Staking inputs & triggers) */}
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              const inputAmt = prompt("How many VERSE tokens from your balance would you like to stake/lock to lease rewards?");
+                              if (inputAmt) handleStake(farm.id, parseFloat(inputAmt));
+                            }}
+                            className="flex-1 py-3 bg-slate-900 border border-slate-900 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl hover:bg-[#c0a080] hover:border-[#c0a080] transition-all cursor-pointer shadow flex items-center justify-center gap-1.5"
+                          >
+                            <Lock className="w-3.5 h-3.5" /> Stake VERSE
+                          </button>
+
+                          {stakedVal > 0 && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you absolutely sure you want to unstake ${stakedVal.toFixed(2)} VERSE tokens from this liquidity pool and recover accrued rewards?`)) {
+                                  handleUnstake(farm.id);
+                                }
+                              }}
+                              className="flex-1 py-3 border border-gray-300 hover:border-red-400 hover:bg-red-50 text-gray-500 hover:text-red-600 font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              Unstake VERSE
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+
+        {/* SIDEBAR FOR TRANS LEDGER (Screenshot 5: Recent operations) */}
+        <div className="space-y-8">
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl">
+            <h4 className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center justify-between">
+              <span className="flex items-center gap-2"><History className="w-4.5 h-4.5 text-[#c0a080]" /> Ledger history</span>
+              <span className="text-[10px] text-gray-400 font-mono tracking-tighter">TOTAL: {history.length}</span>
+            </h4>
+            
+            <div className="space-y-5">
+              {history.length > 0 ? (
+                history.map(tx => (
+                  <div key={tx.id} className="flex items-center gap-4 group hover:bg-slate-50/50 p-2 rounded-2xl transition-all">
+                    <div className={`p-3 rounded-2xl h-11 w-11 flex items-center justify-center ${
+                      tx.type === 'receive' ? 'bg-emerald-50 text-emerald-500' : 
+                      tx.type === 'earned' ? 'bg-[#c0a080]/10 text-[#8b5e3c]' :
+                      tx.type === 'swap' ? 'bg-blue-50 text-blue-500' :
+                      'bg-rose-50 text-rose-500'
+                    }`}>
+                      {tx.type === 'receive' ? <ArrowDownLeft className="w-4 h-4" /> : 
+                       tx.type === 'earned' ? <Sparkles className="w-3.5 h-3.5" /> :
+                       tx.type === 'swap' ? <ArrowRightLeft className="w-4 h-4" /> :
+                       <ArrowUpRight className="w-4 h-4" />}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-extrabold text-slate-800 truncate">{tx.description}</p>
+                      <p className="text-[9px] text-[#8b5e3c] font-mono tracking-tighter mt-0.5">
+                        {new Date(tx.date).toLocaleTimeString()}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className={`text-xs font-black ${
+                        ['receive', 'earned'].includes(tx.type) ? 'text-emerald-600' : 'text-slate-500'
+                      }`}>
+                        {['receive', 'earned'].includes(tx.type) ? '+' : '-'}{tx.amount.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-300 text-xs italic font-serif">No transaction entries found in history.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Toast Error Alert boxes */}
+          <AnimatePresence>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -15, scale: 0.95 }}
+                className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 text-center text-xs font-bold font-mono tracking-tight"
+              >
+                ⚠ ERROR: {error}
+              </motion.div>
+            )}
+
+            {successMsg && (
+              <motion.div 
+                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -15, scale: 0.95 }}
+                className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 text-center text-xs font-bold font-mono tracking-tight"
+              >
+                ✓ SUCCESS: {successMsg}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-8">
-          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl">
-            <h4 className="text-sm font-mono uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
-              <History className="w-4 h-4" /> Activity
-            </h4>
-            <div className="space-y-6">
-              {history.length > 0 ? history.map(tx => (
-                <div key={tx.id} className="flex items-center gap-4 group">
-                  <div className={`p-3 rounded-2xl ${
-                    tx.type === 'receive' ? 'bg-emerald-500/10 text-emerald-500' : 
-                    tx.type === 'earned' ? 'bg-[#c0a080]/10 text-[#8b5e3c]' :
-                    tx.type === 'swap' ? 'bg-blue-500/10 text-blue-500' :
-                    'bg-red-500/10 text-red-500'
-                  }`}>
-                    {tx.type === 'receive' ? <Plus className="w-4 h-4" /> : 
-                     tx.type === 'earned' ? <Zap className="w-4 h-4" /> :
-                     tx.type === 'swap' ? <ArrowRightLeft className="w-4 h-4" /> :
-                     <Minus className="w-4 h-4" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold truncate text-gray-900 group-hover:text-black transition-colors">{tx.description}</p>
-                    <p className="text-[10px] text-gray-400 font-mono">{new Date(tx.date).toLocaleTimeString()}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-black ${
-                      ['receive', 'earned'].includes(tx.type) ? 'text-emerald-600' : 'text-gray-400'
-                    }`}>
-                      {['receive', 'earned'].includes(tx.type) ? '+' : '-'}{tx.amount}
-                    </p>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-300 text-sm italic">No recent anomalies detected.</p>
-                </div>
-              )}
-            </div>
-            
-            <button className="w-full py-4 text-xs font-mono uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 transition-colors border-t border-gray-50 pt-6">
-              View Full History
-            </button>
-          </div>
-
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-center text-sm font-bold"
-            >
-              {error}
-            </motion.div>
-          )}
-        </div>
       </div>
     </motion.div>
   );
+}
+
+// Support function inside layout helper for dynamic color classification of token stats
+function dctStyle(val: number) {
+  return val >= 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/50' : 'bg-rose-50 text-rose-500 border border-rose-200/50';
 }
 
 function TransactionRow({ tx }: { tx: Transaction; key?: any }) {
