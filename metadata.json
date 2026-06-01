@@ -1,6 +1,6 @@
 {
   "name": "VERSE GAME & VERSE MARKET ANALYTICS",
-  "description": "A high-fidelity mini-game hub and market analytics platform for the Verse ecosystem.",
+  "description": "An interactive gamified hub and education analytics deck for the Bitcoin.com Wallet & Verse ecosystem.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

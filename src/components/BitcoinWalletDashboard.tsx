@@ -173,6 +173,21 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
     SOL: 164.30
   });
 
+  const [marketChanges, setMarketChanges] = useState<Record<string, number>>({
+    BTC: 3.2,
+    ETH: 2.1,
+    USDT: 0.0,
+    USDC: 0.0,
+    BNB: -1.3,
+    XRP: 1.5,
+    MATIC: 5.4,
+    VERSE: 12.8,
+    SOL: 4.8
+  });
+
+  const [isLivePricesActive, setIsLivePricesActive] = useState(false);
+  const [livePricesLastUpdated, setLivePricesLastUpdated] = useState('');
+
   const [sparklines, setSparklines] = useState<Record<string, number[]>>({
     BTC: [67100, 67400, 67200, 67800, 68050, 68200, 68420.50],
     ETH: [3400, 3420, 3460, 3490, 3470, 3500, 3512.40],
@@ -195,33 +210,115 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
     { id: 'verse', name: 'Verse', symbol: 'VERSE', logo: 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png', quantity: 12500, price: 0.048, change24h: 12.8, category: 'polygon' }
   ]);
 
-  // Sync assets with simulatedPrices
+  // Sync assets with simulatedPrices and marketChanges
   useEffect(() => {
     setAssets(prev => prev.map(asset => {
       if (simulatedPrices[asset.symbol]) {
         return {
           ...asset,
-          price: simulatedPrices[asset.symbol]
+          price: simulatedPrices[asset.symbol],
+          change24h: marketChanges[asset.symbol] !== undefined ? marketChanges[asset.symbol] : asset.change24h
         };
       }
       return asset;
     }));
-  }, [simulatedPrices]);
+  }, [simulatedPrices, marketChanges]);
 
-  // Live simulate random asset moves
+  // Real-time live prices fetches from official cryptographic market data
   useEffect(() => {
-    const interval = setInterval(() => {
+    let isActive = true;
+    const fetchRealPrices = async () => {
+      try {
+        const response = await fetch('https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC,ETH,VERSE,USDT,USDC,BNB,XRP,MATIC,SOL&tsyms=USD');
+        if (!response.ok) throw new Error('API failure');
+        const json = await response.json();
+        
+        if (json && json.RAW) {
+          const fetchedPrices: Record<string, number> = {};
+          const fetchedChanges: Record<string, number> = {};
+          
+          Object.keys(json.RAW).forEach(sym => {
+            if (json.RAW[sym] && json.RAW[sym].USD) {
+              const u = json.RAW[sym].USD;
+              fetchedPrices[sym] = u.PRICE;
+              fetchedChanges[sym] = parseFloat(u.CHANGEPCT24HOUR.toFixed(2));
+            }
+          });
+          
+          if (isActive && Object.keys(fetchedPrices).length > 0) {
+            setSimulatedPrices(prev => ({ ...prev, ...fetchedPrices }));
+            setMarketChanges(prev => ({ ...prev, ...fetchedChanges }));
+            setIsLivePricesActive(true);
+            setLivePricesLastUpdated(new Date().toLocaleTimeString());
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Primary CryptoCompare price fetch fell back, attempting CoinGecko...');
+      }
+
+      // Fallback CoinGecko fetch
+      try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,verse,tether,usd-coin,binancecoin,ripple,matic-network,solana&vs_currencies=usd&include_24hr_change=true');
+        if (response.ok) {
+          const json = await response.json();
+          const fetchedPrices: Record<string, number> = {};
+          const fetchedChanges: Record<string, number> = {};
+          const mapping: Record<string, string> = {
+            bitcoin: 'BTC',
+            ethereum: 'ETH',
+            verse: 'VERSE',
+            tether: 'USDT',
+            'usd-coin': 'USDC',
+            binancecoin: 'BNB',
+            ripple: 'XRP',
+            'matic-network': 'MATIC',
+            solana: 'SOL'
+          };
+
+          Object.keys(json).forEach(id => {
+            const sym = mapping[id];
+            if (sym) {
+              fetchedPrices[sym] = json[id].usd;
+              fetchedChanges[sym] = parseFloat((json[id].usd_24h_change || 0).toFixed(2));
+            }
+          });
+
+          if (isActive && Object.keys(fetchedPrices).length > 0) {
+            setSimulatedPrices(prev => ({ ...prev, ...fetchedPrices }));
+            setMarketChanges(prev => ({ ...prev, ...fetchedChanges }));
+            setIsLivePricesActive(true);
+            setLivePricesLastUpdated(new Date().toLocaleTimeString());
+          }
+        }
+      } catch (cgErr) {
+        console.error('All physical live crypto price apis offline.', cgErr);
+      }
+    };
+
+    fetchRealPrices();
+    const fetchInterval = setInterval(fetchRealPrices, 15000); // refresh every 15 seconds
+
+    return () => {
+      isActive = false;
+      clearInterval(fetchInterval);
+    };
+  }, []);
+
+  // Micro-fluctuation simulation engine for ultimate interactive user feel
+  useEffect(() => {
+    const microInterval = setInterval(() => {
       setSimulatedPrices(prev => {
-        const next = { ...prev };
-        Object.keys(next).forEach(sym => {
+        const fluctuated = { ...prev };
+        Object.keys(fluctuated).forEach(sym => {
           if (sym === 'USDT' || sym === 'USDC') return;
-          const fluctuation = (Math.random() - 0.5) * 0.01; // max 0.5% change
-          next[sym] = parseFloat((next[sym] * (1 + fluctuation)).toFixed(sym === 'VERSE' ? 5 : 2));
+          const percentFluct = (Math.random() - 0.5) * 0.0008; 
+          fluctuated[sym] = parseFloat((fluctuated[sym] * (1 + percentFluct)).toFixed(sym === 'VERSE' ? 5 : 2));
         });
-        return next;
+        return fluctuated;
       });
-    }, 4500);
-    return () => clearInterval(interval);
+    }, 4000);
+    return () => clearInterval(microInterval);
   }, []);
   // Quick action modals
   const [sendModal, setSendModal] = useState(false);
@@ -758,7 +855,7 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
               <h2 className="text-2xl font-black text-gray-900 tracking-tight flex items-center justify-center gap-1.5">
                 Bitcoin.com <span className="text-[#8b5e3c]">Wallet</span>
               </h2>
-              <p className="text-[10px] font-mono tracking-widest text-[#8b5e3c] font-bold uppercase mt-1">Ecosystem Game Portal</p>
+              <p className="text-[10px] font-mono tracking-widest text-[#8b5e3c] font-bold uppercase mt-1">Ecosystem Educational Portal</p>
             </div>
 
             {/* Tabs list for Sign In / Sign Up */}
@@ -851,7 +948,7 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
                   </p>
                   <ul className="list-disc pl-4 text-[11px] space-y-1.5 text-slate-600 font-semibold">
                     <li><strong className="text-emerald-700 font-bold">Google Account:</strong> Sign in instantly with a single click using Google Authentication.</li>
-                    <li><strong className="text-sky-700 font-bold">Telegram Username:</strong> Connect to the game gateway instantly with your Telegram username handler.</li>
+                    <li><strong className="text-sky-700 font-bold">Telegram Username:</strong> Connect to the website gateway instantly with your Telegram username handler.</li>
                   </ul>
                 </div>
 
@@ -930,12 +1027,12 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
                           safeStorage.setItem('btc_wallet_authtype', 'telegram');
                           safeStorage.setItem('btc_wallet_authed', 'true');
                           setIsAuthenticated(true);
-                          triggerAlert(`Successfully entered the game as Telegram user ${cleanUsername}!`);
+                          triggerAlert(`Successfully entered the website as Telegram user ${cleanUsername}!`);
                         }}
                         className="w-full bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs transition-colors shadow-md shadow-sky-500/15 cursor-pointer"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        Access Game Dashboard 🎮
+                        Access Website Dashboard 🌐
                       </button>
                     </div>
                   </div>
@@ -967,7 +1064,7 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
                       </svg>
                     </div>
                     <h3 className="text-sm font-black text-slate-800">Sign In with Google Account</h3>
-                    <p className="text-[10px] text-slate-400 mt-0.5 font-bold font-mono">Choose an account for Bitcoin.com Game</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 font-bold font-mono">Choose an account for Bitcoin.com Website</p>
                   </div>
 
                   {/* Google accounts list */}
@@ -1323,10 +1420,26 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-[#8b5e3c]" /> Cryptocurrency Markets
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">Simulated real-time ticker quotes with SVG spark indicators.</p>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                      <Activity className="w-5 h-5 text-[#8b5e3c]" /> Cryptocurrency Markets
+                    </h3>
+                    {isLivePricesActive ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> LIVE CONNECTED (15s Poll)
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> SIMULATION MODE
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    {isLivePricesActive 
+                      ? `Real-time official exchange tickers fetched dynamically. Last updated at ${livePricesLastUpdated}.`
+                      : "Simulated real-time ticker quotes with SVG spark indicators."
+                    }
+                  </p>
                 </div>
 
                 {/* Market Search Box */}
@@ -1380,7 +1493,9 @@ export default function BitcoinWalletDashboard({ onBack }: BitcoinWalletDashboar
                   .map((sym) => {
                     const price = simulatedPrices[sym];
                     const spark = sparklines[sym] || [price, price, price];
-                    const change = sym === 'VERSE' ? 12.8 : sym === 'BTC' ? 3.2 : sym === 'ETH' ? 2.1 : sym === 'BNB' ? -1.3 : sym === 'MATIC' ? 5.4 : sym === 'USDT' || sym === 'USDC' ? 0.0 : -0.4;
+                    const change = marketChanges[sym] !== undefined 
+                      ? marketChanges[sym] 
+                      : (sym === 'VERSE' ? 12.8 : sym === 'BTC' ? 3.2 : sym === 'ETH' ? 2.1 : sym === 'BNB' ? -1.3 : sym === 'MATIC' ? 5.4 : sym === 'USDT' || sym === 'USDC' ? 0.0 : -0.4);
                     const logo = sym === 'BTC' ? 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
                       : sym === 'ETH' ? 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
                       : sym === 'VERSE' ? 'https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png'

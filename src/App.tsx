@@ -8,6 +8,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import BitcoinWalletDashboard from './components/BitcoinWalletDashboard';
 import CryptoHistory from './components/CryptoHistory';
 import ClaimReward from './components/ClaimReward';
+import TelegramCommunityHub from './components/TelegramCommunityHub';
+import WalletInfoCard from './components/WalletInfoCard';
+import BottomGallery from './components/BottomGallery';
 import { 
   Coins, 
   Gamepad2, 
@@ -26,6 +29,7 @@ import {
   Briefcase,
   Sparkles,
   Send,
+  Mail,
   Download,
   RefreshCw,
   Percent,
@@ -35,6 +39,7 @@ import {
   Check,
   Lock,
   ChevronRight,
+  ChevronLeft,
   PlusCircle,
   ArrowUpRight,
   ArrowDownLeft,
@@ -144,6 +149,81 @@ const maskEmail = (email: string | null): string => {
   return email;
 };
 
+const COMMUNITY_WEBSITE_SLIDES = [
+  {
+    subtitle: "HONORING MENTORS & LEADERS",
+    title: "A Monumental Appreciation",
+    content: "First of all a big thank you to my @stone_brb boss. Also expressing gratitude to all the responsible persons of the community, whose tireless efforts and contributions have made our community so strong and organized today.",
+    detail: "Every successful global community begins with strong leaders and dedicated creators. We express our utmost thanks and respect for their hard work."
+  },
+  {
+    subtitle: "COLLECTIVE EFFORT",
+    title: "The Power of Conscious Members",
+    content: "The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member.",
+    detail: "Through individual knowledge sharing, active engagement, and helpful discussions, our platform remains organized and supportive for everyone."
+  },
+  {
+    subtitle: "OUR ULTIMATE PURPOSE",
+    title: "Core Focus of Our Website",
+    content: "The main focus and purpose of my Website is to introduce the future generation to the concept of “Verse” and ''Bitcoin.com wallet''And '' community'' as well as provide a basic understanding of cryptocurrency.",
+    detail: "Through this website, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices. I have tried my best so that through this website the new generation can gain atleast a basic knowledge and understand things simply."
+  },
+  {
+    subtitle: "THE IMPORTANCE OF INITIATION",
+    title: "The Power of the 'Beginning'",
+    content: "One of the most important things in human life is the \"beginning\". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject.",
+    detail: "With this website I wanted to make that starting point easy and interesting. Also, using this website a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading."
+  },
+  {
+    subtitle: "ECOSYSTEM DISCOVERY",
+    title: "Detailed Overview of Features",
+    content: "Our website has been designed to provide clear and easy-to-understand information about the Bitcoin.com Wallet and the Verse Ecosystem, helping both new and existing users learn more about the ecosystem.",
+    detail: "Each section of our website has been engineered with real-time guides, market research data, interactive test environments, and active portal references to build Web3 confidence."
+  },
+  {
+    subtitle: "DIGITAL ASSETS PLATFORM",
+    title: "Bitcoin.com Wallet Features",
+    content: "In this section, we have provided a simple overview of what the Bitcoin.com Wallet is, how it works, and the features it offers.",
+    detail: "Our goal is to help users gain a basic understanding of the wallet and its functionality in an easy and accessible way.\n\nWe have also included cryptocurrency market prices, trading-related information, crypto news, and other useful resources so that users can access important information from a single platform."
+  },
+  {
+    subtitle: "CHRONICLES OF DECENTRALIZATION",
+    title: "Crypto Founder and History",
+    content: "This section focuses on the founders and history of popular cryptocurrencies. Learn who created a particular cryptocurrency and how the project grew.",
+    detail: "Here, you can learn:\n• Who created a particular cryptocurrency\n• Background information about the founder\n• How the project started\n• How the cryptocurrency gained popularity over time\n\nWe have presented this information in a simple format to help users understand the history of the crypto industry and the people behind some of its most influential projects.\n\nCurrently, we have included a limited number of popular cryptocurrencies. More projects and historical information will be added through future updates."
+  },
+  {
+    subtitle: "INCENTIVIZED WALLET TRAINING",
+    title: "Claim Daily Reward System",
+    content: "In this section, we aim to explain how the reward system within the Bitcoin.com Wallet works.",
+    detail: "Using practical examples, we demonstrate how users can participate in various reward opportunities and activities available through the Bitcoin.com Wallet. This helps new users better understand the platform before using the app and makes the overall experience easier to navigate."
+  },
+  {
+    subtitle: "REINFORCING CONCEPTS",
+    title: "Verse Community Knowledge Quiz",
+    content: "We have included educational questions and community-related content to help users learn more about the Verse Community.",
+    detail: "Through this section, users can test their knowledge, discover new information, and gain a deeper understanding of the Verse Ecosystem and its community."
+  },
+  {
+    subtitle: "GLOBAL SOCIAL COLLABORATION",
+    title: "Official Telegram Community Link",
+    content: "Our website also includes a link to the official Telegram Community.",
+    detail: "By joining our Telegram Community, you can connect with members from around the world, stay updated with the latest community news, participate in discussions, and learn about upcoming events and opportunities.\n\nWe have made an effort to highlight the purpose, activities, and benefits of being part of our community."
+  },
+  {
+    subtitle: "COGNITIVE GRAPHICS & STUDY",
+    title: "Ecosystem Learning Section",
+    content: "In addition to written content, we use ecosystem-related images, diagrams, and visual materials to make learning easier and more engaging.",
+    detail: "These resources help users better understand the Verse Ecosystem and Bitcoin.com Wallet, gain valuable knowledge, learn independently, and share that knowledge with others."
+  },
+  {
+    subtitle: "BUILDING TOMORROW'S FUTURE",
+    title: "Our Final Message",
+    content: "Our goal is not only to provide information but also to create an educational platform where people can learn, share knowledge, and improve their understanding of Web3 and the crypto industry.",
+    detail: "Thank you for visiting our website.\n\nJoin the Verse Community, learn new skills, share knowledge with others, and work together to build a better future for yourself and those around you."
+  }
+];
+
 function Particle({ x, y }: { x: number; y: number; key?: any }) {
   return (
     <motion.div
@@ -163,9 +243,7 @@ function Particle({ x, y }: { x: number; y: number; key?: any }) {
 }
 
 export default function App() {
-  const [gameState, setGameState] = useState<GameState>(() => {
-    return (safeStorage.getItem('verse_game_state') as GameState) || 'home';
-  });
+  const [gameState, setGameState] = useState<GameState>('home');
   const [username, setUsername] = useState<string | null>(() => safeStorage.getItem('verseUser'));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
@@ -178,6 +256,7 @@ export default function App() {
   const [loginPass, setLoginPass] = useState('');
   const [googleShowModalApp, setGoogleShowModalApp] = useState(false);
   const [customGoogleEmailApp, setCustomGoogleEmailApp] = useState('');
+  const [loginMethod, setLoginMethod] = useState<'google' | 'telegram'>('google');
   const [appAuthType, setAppAuthType] = useState<'standard' | 'google' | 'telegram'>(() => {
     return (safeStorage.getItem('verse_app_authtype') as any) || 'standard';
   });
@@ -318,9 +397,16 @@ export default function App() {
   const [showLinks, setShowLinks] = useState(false);
   const [showFocus, setShowFocus] = useState(false);
   const [isWelcomeExpanded, setIsWelcomeExpanded] = useState(false);
-  const [homeSubState, setHomeSubState] = useState<'welcome' | 'features'>(() => {
-    return (safeStorage.getItem('verse_home_sub_state') as 'welcome' | 'features') || 'welcome';
+  const [homeSubState, setHomeSubState] = useState<'welcome' | 'features'>('welcome');
+  const [focusSlideIndex, setFocusSlideIndex] = useState<number>(() => {
+    const saved = safeStorage.getItem('verse_focus_slide_index');
+    return saved ? parseInt(saved, 10) : 0;
   });
+  const [showSlideDetail, setShowSlideDetail] = useState(false);
+
+  useEffect(() => {
+    safeStorage.setItem('verse_focus_slide_index', focusSlideIndex.toString());
+  }, [focusSlideIndex]);
 
   useEffect(() => {
     safeStorage.setItem('verse_game_state', gameState);
@@ -447,22 +533,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#c0a080] selection:text-white">
-      {/* Fixed Top Logo Header */}
-      {username && !(gameState === 'home' && homeSubState === 'welcome') && (
-        <div className="fixed top-0 left-0 w-full h-[55px] bg-white border-b border-gray-100 flex items-center px-[12px] z-[10000] shadow-sm">
-          <img 
-            src="https://i.ibb.co.com/6R2VXfBG/file-000000005e3472089aedcd9ec7a50852.png" 
-            alt="Verse Logo" 
-            className="h-[35px] w-auto mr-[10px] !block"
-            referrerPolicy="no-referrer"
-          />
-          <div className="flex items-center text-[16px] font-bold tracking-[1px] uppercase">
-            <span className="text-[#8b5e3c]">VERSE GAME</span>
-            <span className="mx-1 text-[#003366]">&</span>
-            <span className="text-[#003366]">VERSE MARKET ANALYTICS</span>
-          </div>
-        </div>
-      )}
 
       <AnimatePresence mode="wait">
         {isLoadingUser ? (
@@ -569,18 +639,28 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center w-full px-4"
                   >
-                    <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl mx-auto mb-4 border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-105 duration-300">
-                      <img
-                        src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
-                        alt="Bitcoin.com Wallet Logo"
-                        className="w-full h-full object-cover rounded-[1.4rem]"
-                        referrerPolicy="no-referrer"
-                      />
+                    <div className="flex justify-center items-center gap-4 mb-4">
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-110 duration-300">
+                        <img
+                          src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
+                          alt="Bitcoin.com Wallet Logo"
+                          className="w-full h-full object-cover rounded-[1.4rem]"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-110 duration-300">
+                        <img
+                          src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
+                          alt="Verse Ecosystem Logo"
+                          className="w-full h-full object-cover rounded-[1.4rem]"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
                     </div>
                     <h1 className="text-3xl font-extrabold text-white tracking-tight">
                       Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300">Wallet</span>
                     </h1>
-                    <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">Ecosystem Game & Analytics Portal</p>
+                    <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
                   </motion.div>
 
                   {/* SIGN IN INSTRUCTIONS DESCRIPTION CARD */}
@@ -589,8 +669,8 @@ export default function App() {
                       <Info className="w-4 h-4" />
                       <span>Security Instructions</span>
                     </div>
-                    <p className="text-slate-350 font-medium">
-                      Welcome to the portal. Enter your Google sign in credentials below to enter. This login page acts as your portal gateway to access game features and analytics.
+                    <p className="text-slate-350 font-medium font-sans">
+                      Welcome to the portal. Enter your security credentials below to enter. This login page acts as your portal gateway to access website features and analytics.
                     </p>
                   </div>
 
@@ -601,42 +681,102 @@ export default function App() {
                     className="w-full bg-[#0b1329]/90 border border-blue-900/55 rounded-[2.2rem] p-6 backdrop-blur-2xl transition-all shadow-2xl flex flex-col gap-5 border-t-2 border-t-blue-500/20"
                   >
                     <div>
-                      <span className="text-[9px] font-mono tracking-widest text-sky-400 font-black uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/10">SECURE LOGIN METHOD</span>
+                      <span className="text-[9px] font-mono tracking-widest text-sky-400 font-black uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/10">
+                        {loginMethod === 'google' ? 'GOOGLE EMAIL SESSION' : 'TELEGRAM SECURE CORES'}
+                      </span>
                     </div>
 
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
-                        <input
-                          type="email"
-                          value={customGoogleEmailApp}
-                          onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
-                          placeholder="...........@gmail.com"
-                          className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all font-sans"
-                        />
-                      </div>
+                      {loginMethod === 'google' ? (
+                        <>
+                          <div>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
+                            <input
+                              type="email"
+                              value={customGoogleEmailApp}
+                              onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
+                              placeholder="...........@gmail.com"
+                              className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all font-sans"
+                            />
+                          </div>
 
-                      <div>
-                        <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
-                        <input
-                          type="password"
-                          value={telegramPass}
-                          onChange={(e) => setTelegramPass(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
-                        />
-                      </div>
+                          <div>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <input
+                              type="password"
+                              value={telegramPass}
+                              onChange={(e) => setTelegramPass(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
+                            />
+                          </div>
 
-                      <div className="pt-1 flex justify-start">
+                          <div className="pt-1 flex justify-start">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomGoogleEmailApp('...........@gmail.com');
+                                setTelegramPass('supersecret');
+                              }}
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-400 hover:text-blue-300 transition-colors font-mono font-black hover:underline bg-blue-950/20 hover:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-500/15 cursor-pointer"
+                            >
+                              💡 Autofill Demo Account
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-sky-400 font-extrabold mb-1.5 px-0.5">Telegram Username</label>
+                            <div className="relative">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-400 font-black font-mono text-xs">@</span>
+                              <input
+                                type="text"
+                                value={telegramUser}
+                                onChange={(e) => setTelegramUser(e.target.value)}
+                                placeholder="username"
+                                className="w-full bg-[#050b1a] border border-sky-900/50 focus:border-sky-450 focus:ring-1 focus:ring-sky-450 outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-white font-semibold transition-all"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-sky-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <input
+                              type="password"
+                              value={telegramPass}
+                              onChange={(e) => setTelegramPass(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full bg-[#050b1a] border border-sky-900/50 focus:border-sky-450 focus:ring-1 focus:ring-sky-450 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
+                            />
+                          </div>
+
+                          <div className="pt-1 flex justify-start">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTelegramUser('juwel_rana_official');
+                                setTelegramPass('secretpass123');
+                              }}
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-sky-400 hover:text-sky-300 transition-colors font-mono font-black hover:underline bg-sky-950/20 hover:bg-sky-950/40 px-3 py-1.5 rounded-xl border border-sky-500/15 cursor-pointer"
+                            >
+                              💡 Autofill Demo Account
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Unified Trigger Button below Autofill to hop styles */}
+                      <div className="pt-3 border-t border-blue-900/20 mt-1">
                         <button
                           type="button"
                           onClick={() => {
-                            setCustomGoogleEmailApp('...........@gmail.com');
-                            setTelegramPass('supersecret');
+                            setLoginMethod(loginMethod === 'google' ? 'telegram' : 'google');
                           }}
-                          className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-400 hover:text-blue-300 transition-colors font-mono font-black hover:underline bg-blue-950/20 hover:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-500/15"
+                          className="w-full text-center py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-450 border border-sky-550/25 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
                         >
-                          💡 Autofill Demo Account
+                          <Send className="w-3.5 h-3.5 rotate-45 text-sky-400" />
+                          Login to Telegram Username
                         </button>
                       </div>
                     </div>
@@ -644,39 +784,73 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => {
-                        const emailInput = customGoogleEmailApp.trim();
-                        if (!emailInput) return;
-                        
-                        // Map the user session securely
-                        const finalEmail = (emailInput === '...........@gmail.com' || emailInput === '')
-                          ? 'mdjuwelranajx127133@gmail.com'
-                          : emailInput;
+                        if (loginMethod === 'google') {
+                          const emailInput = customGoogleEmailApp.trim();
+                          if (!emailInput) return;
                           
-                        setIsConnectingApp(true);
-                        setConnectProgress(0);
-                        let progressCount = 0;
-                        const t = setInterval(() => {
-                          progressCount += Math.random() * 25 + 5;
-                          if (progressCount >= 100) {
-                            clearInterval(t);
-                            setConnectProgress(100);
-                            setAppAuthType('google');
-                            safeStorage.setItem('verse_app_authtype', 'google');
-                            safeStorage.setItem('verseUser', finalEmail);
-                            setUsername(finalEmail);
-                            setIsConnectingApp(false);
-                          } else {
-                            setConnectProgress(progressCount);
-                          }
-                        }, 80);
+                          // Map the user session securely
+                          const finalEmail = (emailInput === '...........@gmail.com' || emailInput === '')
+                            ? 'mdjuwelranajx127133@gmail.com'
+                            : emailInput;
+                            
+                          setIsConnectingApp(true);
+                          setConnectProgress(0);
+                          let progressCount = 0;
+                          const t = setInterval(() => {
+                            progressCount += Math.random() * 25 + 5;
+                            if (progressCount >= 100) {
+                              clearInterval(t);
+                              setConnectProgress(100);
+                              setAppAuthType('google');
+                              safeStorage.setItem('verse_app_authtype', 'google');
+                              safeStorage.setItem('verseUser', finalEmail);
+                              setUsername(finalEmail);
+                              setIsConnectingApp(false);
+                            } else {
+                              setConnectProgress(progressCount);
+                            }
+                          }, 80);
+                        } else {
+                          const tgUserRaw = telegramUser.trim();
+                          if (!tgUserRaw) return;
+                          
+                          const finalTgUser = tgUserRaw.startsWith('@') ? tgUserRaw : '@' + tgUserRaw;
+                          
+                          setIsConnectingApp(true);
+                          setConnectProgress(0);
+                          let progressCount = 0;
+                          const t = setInterval(() => {
+                            progressCount += Math.random() * 25 + 5;
+                            if (progressCount >= 100) {
+                              clearInterval(t);
+                              setConnectProgress(100);
+                              setAppAuthType('telegram');
+                              safeStorage.setItem('verse_app_authtype', 'telegram');
+                              safeStorage.setItem('verseUser', finalTgUser);
+                              setUsername(finalTgUser);
+                              setIsConnectingApp(false);
+                            } else {
+                              setConnectProgress(progressCount);
+                            }
+                          }, 80);
+                        }
                       }}
-                      disabled={!customGoogleEmailApp.trim()}
-                      className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/20 cursor-pointer mt-4 border-t border-white/10"
+                      disabled={loginMethod === 'google' ? !customGoogleEmailApp.trim() : !telegramUser.trim()}
+                      className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/20 cursor-pointer mt-2 border-t border-white/10"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.24 10.285V13.4h6.86c-.277 1.56-1.602 4.585-6.86 4.585-4.54 0-8.24-3.765-8.24-8.4s3.7-8.4 8.24-8.4c2.58 0 4.307 1.095 5.298 2.045l2.465-2.37C18.535 1.21 15.655 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.4-.195-1.925H12.24z"/>
-                      </svg>
-                      Sign In with Google Account
+                      {loginMethod === 'google' ? (
+                        <>
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.24 10.285V13.4h6.86c-.277 1.56-1.602 4.585-6.86 4.585-4.54 0-8.24-3.765-8.24-8.4s3.7-8.4 8.24-8.4c2.58 0 4.307 1.095 5.298 2.045l2.465-2.37C18.535 1.21 15.655 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.4-.195-1.925H12.24z"/>
+                          </svg>
+                          Sign In with Google Account
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5 rotate-45" />
+                          Sign In with Telegram Account
+                        </>
+                      )}
                     </button>
                   </motion.div>
 
@@ -690,40 +864,34 @@ export default function App() {
             key="app-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className={gameState === 'home' && homeSubState === 'welcome' ? "pt-0" : "pt-[55px]"}
+            className="pt-0"
           >
-            {/* Navigation Header */}
+            {/* Navigation Header - Only shown inside gameplay/features screens, completely hidden on the welcome page */}
             {!(gameState === 'home' && homeSubState === 'welcome') && (
-              <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-[55px] z-40 mt-0">
-                <div className="max-w-4xl mx-auto px-6 py-4 flex justify-end items-center">
-                  <div className="flex items-center gap-6">
-                    <div className="hidden sm:flex flex-col items-end">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Player: {username}</span>
-                        <button 
-                          onClick={() => {
-                            safeStorage.removeItem('verseUser');
-                            safeStorage.removeItem('verse_game_state');
-                            safeStorage.removeItem('verse_home_sub_state');
-                            safeStorage.removeItem('verse_app_authtype');
-                            window.location.reload();
-                          }}
-                          className="text-[9px] bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-2 py-0.5 rounded transition-all font-mono"
-                        >
-                          LOGOUT
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Coins className="w-4 h-4 text-yellow-500" />
-                        <span className="font-mono text-lg font-bold text-gray-900">{coins}</span>
-                      </div>
-                    </div>
+              <header className="border-b border-amber-500/10 bg-white/95 mt-4 mb-2 mx-auto max-w-4xl rounded-2xl shadow-[0_2px_15px_rgba(139,94,60,0.05)]">
+                <div className="px-4 sm:px-6 py-3.5 flex items-center justify-start gap-3 w-full">
+                  
+                  {/* Top-Left Corner Premium Logo and Brand Name side-by-side on a single line */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
+                      alt="Bitcoin.com logo"
+                      className="w-10 h-10 object-cover rounded-xl border border-amber-500/30 shadow-md transform hover:scale-105 transition-transform duration-300 flex-shrink-0"
+                      referrerPolicy="no-referrer"
+                    />
+                    <h1 className="text-xs sm:text-sm md:text-base font-black tracking-tight text-[#8b5e3c] uppercase leading-none select-none min-w-0 truncate">
+                      Bitcoin.com Wallet &amp; Verse community Hub
+                    </h1>
                   </div>
+
                 </div>
               </header>
             )}
 
             <main className="max-w-4xl mx-auto px-6 py-8">
+              {/* Centered top banner image and expandable wallet description */}
+              {(gameState === 'home' && homeSubState === 'features') && <WalletInfoCard />}
+
               <AnimatePresence mode="wait">
                 {gameState === 'home' && (
                   <motion.div
@@ -808,10 +976,12 @@ export default function App() {
                               
                               <div className="block">
                                 <button 
+                                  type="button"
                                   onClick={() => setShowFocus(!showFocus)}
-                                  className="text-[#8b5e3c] hover:text-[#a67148] font-black uppercase tracking-[0.2em] text-sm transition-colors py-2 cursor-pointer"
+                                  className="relative inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 hover:from-amber-500/20 hover:to-amber-500/25 text-[#8b5e3c] font-black uppercase tracking-wider text-xs border border-amber-500/25 mt-4 transition-all duration-300 hover:shadow-md cursor-pointer text-center"
                                 >
-                                  {showFocus ? 'Hide Focus' : 'MAIN FOCUS OF THE VERSE GAME'}
+                                  <Sparkles className="w-4 h-4 text-[#8b5e3c] animate-pulse" />
+                                  {showFocus ? 'COLLAPSE WEBSITE FOCUS' : 'MAIN FOCUS OF THE BITCOIN.COM & VERSE COMMUNITY WEBSITE'}
                                 </button>
                               </div>
                             </div>
@@ -819,18 +989,124 @@ export default function App() {
                             <AnimatePresence>
                               {showFocus && (
                                 <motion.div
-                                  initial={{ opacity: 0, y: -10, height: 0 }}
-                                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                  exit={{ opacity: 0, y: -10, height: 0 }}
-                                  className="overflow-hidden bg-white border border-gray-100 rounded-[2rem] p-8 max-w-2xl mx-auto shadow-xl text-left"
+                                  initial={{ opacity: 0, scale: 0.98, y: -8 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.98, y: -8 }}
+                                  className="overflow-hidden bg-slate-900 border border-amber-500/30 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl mx-auto shadow-2xl text-left relative mt-4 border-t-4 border-t-amber-500/40 text-gray-200"
                                 >
-                                  <div className="prose prose-sm text-gray-700 space-y-4 leading-relaxed font-normal text-sm">
-                                    <p>First of all a big thank you to my @stone_brb boss. Also expressing gratitude to all the responsible persons of the community, whose tireless efforts and contributions have made our community so strong and organized today.</p>
-                                    <p>The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member.</p>
-                                    <p>The main focus and purpose of my game is to introduce the future generation to the concept of “Verse” and community, as well as provide a basic understanding of cryptocurrency. Through this game, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices.</p>
-                                    <p>I have tried my best so that through this game the new generation can gain atleast a basic knowledge and understand things simply.</p>
-                                    <p>One of the most important things in human life is the "beginning". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject. With this game I wanted to make that starting point easy and interesting.</p>
-                                    <p>Also, using this game a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading.</p>
+                                  {/* Ambient Glow */}
+                                  <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                  {/* Section top tracker and label */}
+                                  <div className="flex justify-between items-center border-b border-amber-500/15 pb-4 mb-6">
+                                    <div className="flex items-center gap-2">
+                                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                                      <span className="text-[10px] font-mono font-black uppercase tracking-widest text-amber-400 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/20">
+                                        Ecosystem Objective • Slide {focusSlideIndex + 1} of {COMMUNITY_WEBSITE_SLIDES.length}
+                                      </span>
+                                    </div>
+                                    <div className="text-[11px] font-mono font-black text-amber-500/60 uppercase">
+                                      Education Deck
+                                    </div>
+                                  </div>
+
+                                  {/* Interactive Slide Animation Container */}
+                                  <AnimatePresence mode="wait">
+                                    <motion.div
+                                      key={focusSlideIndex}
+                                      initial={{ opacity: 0, x: 20 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      exit={{ opacity: 0, x: -20 }}
+                                      transition={{ duration: 0.3 }}
+                                      className="space-y-4"
+                                    >
+                                      <div>
+                                        <span className="text-[9.5px] uppercase tracking-widest font-mono font-bold text-[#c0a080]">
+                                          {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].subtitle}
+                                        </span>
+                                        <h3 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-white tracking-tight mt-0.5">
+                                          {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].title}
+                                        </h3>
+                                      </div>
+
+                                      {/* Content explanation paragraph */}
+                                      <p className="text-xs sm:text-sm font-semibold text-gray-300 leading-relaxed font-sans bg-slate-950/40 p-4 rounded-2xl border border-white/5 whitespace-pre-line">
+                                        {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].content}
+                                      </p>
+
+                                      {/* "More details" interactive expander button */}
+                                      <div className="space-y-2 pt-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setShowSlideDetail(!showSlideDetail)}
+                                          className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-xl font-bold font-mono border border-amber-500/15 cursor-pointer"
+                                        >
+                                          <span>✨ {showSlideDetail ? 'Hide details' : 'More details'}</span>
+                                        </button>
+
+                                        <AnimatePresence>
+                                          {showSlideDetail && (
+                                            <motion.div
+                                              initial={{ opacity: 0, y: 5 }}
+                                              animate={{ opacity: 1, y: 0 }}
+                                              exit={{ opacity: 0, y: 5 }}
+                                              className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal bg-[#040815]/95 p-5 rounded-2xl border border-amber-500/20 shadow-inner whitespace-pre-line"
+                                            >
+                                              {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].detail}
+                                            </motion.div>
+                                          )}
+                                        </AnimatePresence>
+                                      </div>
+                                    </motion.div>
+                                  </AnimatePresence>
+
+                                  {/* Multi-step pagination dots progress bar */}
+                                  <div className="flex flex-wrap gap-1.5 justify-center items-center py-4 my-2">
+                                    {COMMUNITY_WEBSITE_SLIDES.map((_, i) => (
+                                      <button
+                                        key={i}
+                                        type="button"
+                                        onClick={() => {
+                                          setFocusSlideIndex(i);
+                                          setShowSlideDetail(false);
+                                        }}
+                                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                                          i === focusSlideIndex 
+                                            ? 'bg-amber-400 scale-125 shadow-[0_0_8px_#f59e0b]' 
+                                            : 'bg-slate-700 hover:bg-slate-500'
+                                        }`}
+                                        title={`Page ${i + 1}`}
+                                      />
+                                    ))}
+                                  </div>
+
+                                  {/* Next and Back controllers */}
+                                  <div className="flex items-center justify-between border-t border-amber-500/15 pt-5 mt-4">
+                                    <button
+                                      type="button"
+                                      disabled={focusSlideIndex === 0}
+                                      onClick={() => {
+                                        setFocusSlideIndex(prev => Math.max(0, prev - 1));
+                                        setShowSlideDetail(false);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-25 bg-slate-800 hover:bg-slate-700 disabled:hover:bg-slate-800 text-amber-300 cursor-pointer"
+                                    >
+                                      <ChevronLeft className="w-4 h-4" />
+                                      Back
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      disabled={focusSlideIndex === COMMUNITY_WEBSITE_SLIDES.length - 1}
+                                      onClick={() => {
+                                        setFocusSlideIndex(prev => Math.min(COMMUNITY_WEBSITE_SLIDES.length - 1, prev + 1));
+                                        setShowSlideDetail(false);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-25 bg-amber-500 hover:bg-amber-400 disabled:hover:bg-amber-500 text-slate-950 font-sans cursor-pointer shadow-md"
+                                    >
+                                      Next
+                                      <ChevronRight className="w-4 h-4" />
+                                    </button>
                                   </div>
                                 </motion.div>
                               )}
@@ -883,15 +1159,7 @@ export default function App() {
                           exit={{ opacity: 0, y: -15 }}
                           className="space-y-8"
                         >
-                          {/* Inner control bar to go back to info and philosophy if required */}
-                          <div className="flex justify-start">
-                            <button
-                              onClick={() => setHomeSubState('welcome')}
-                              className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#8b5e3c] border border-gray-200 hover:bg-gray-50 hover:border-[#8b5e3c]/30 font-bold text-xs uppercase rounded-xl tracking-wider transition-all cursor-pointer shadow-sm"
-                            >
-                              <ArrowLeft className="w-3.5 h-3.5" /> Back to Welcome
-                            </button>
-                          </div>
+
 
                           {/* Bitcoin.com Wallet Featured Option */}
                           <motion.button
@@ -919,27 +1187,23 @@ export default function App() {
                             whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
                             whileTap={{ scale: 0.99 }}
                             onClick={() => setGameState('cryptoHistory')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-amber-500/25 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/50 shadow-xl group cursor-pointer relative overflow-hidden"
+                            className="w-full flex items-center gap-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-amber-500/25 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/50 shadow-xl group cursor-pointer relative overflow-hidden"
                           >
                             <div className="flex items-center gap-5 relative z-10">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-amber-500/10 flex items-center justify-center border-2 border-amber-500/15 shadow-md">
-                                <BookOpen className="w-7 h-7 text-amber-500 animate-pulse" />
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-500/15 shadow-md flex-shrink-0 bg-transparent">
+                                <img 
+                                  src="https://i.ibb.co.com/hx1FvtyV/file-00000000bc08720b9442e03fc47020a2.png" 
+                                  alt="Crypto Founder Logo" 
+                                  className="w-full h-full object-cover"
+                                  referrerPolicy="no-referrer"
+                                />
                               </div>
                               <div>
                                 <h3 className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight group-hover:text-amber-400 transition-colors">
                                   Crypto Founder and History
                                 </h3>
-                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Founders, dates and historical discoveries</p>
+                                <p className="text-[10px] text-amber-200/95 font-black uppercase tracking-widest mt-1">Founders, dates and historical discoveries</p>
                               </div>
-                            </div>
-                            {/* Floated Logo */}
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-blue-500/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
-                                alt="Bitcoin.com Wallet Logo Helper" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
                             </div>
                           </motion.button>
 
@@ -963,7 +1227,7 @@ export default function App() {
                                   referrerPolicy="no-referrer"
                                 />
                               </h3>
-                              <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Ticking hours & direct rewards</p>
+                              <p className="text-[10px] text-emerald-200/95 font-black uppercase tracking-widest mt-1">Ticking hours & direct rewards</p>
                             </div>
                           </motion.button>
 
@@ -982,12 +1246,12 @@ export default function App() {
                                 <h3 className="text-xl sm:text-2xl font-black text-purple-400 tracking-tight group-hover:text-purple-300 transition-colors">
                                   Verse Knowledge Quiz
                                 </h3>
-                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Test your crypto IQ and earn massive bonuses</p>
+                                <p className="text-[10px] text-purple-200/95 font-black uppercase tracking-widest mt-1">Test your crypto IQ and earn massive bonuses</p>
                               </div>
                             </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-[#8b5e3c]/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-purple-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                               <img 
-                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
                                 alt="Verse Logo" 
                                 className="w-full h-full object-cover rounded-xl"
                                 referrerPolicy="no-referrer"
@@ -1010,12 +1274,12 @@ export default function App() {
                                 <h3 className="text-xl sm:text-2xl font-black text-teal-400 tracking-tight group-hover:text-teal-300 transition-colors">
                                   Verse Wallet
                                 </h3>
-                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mt-1">Securely manage and transfer your earned assets</p>
+                                <p className="text-[10px] text-teal-200/95 font-black uppercase tracking-widest mt-1">Securely manage and transfer your earned assets</p>
                               </div>
                             </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/20 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                               <img 
-                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
+                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
                                 alt="Verse Logo" 
                                 className="w-full h-full object-cover rounded-xl"
                                 referrerPolicy="no-referrer"
@@ -1035,7 +1299,7 @@ export default function App() {
                                 </div>
                                 <div>
                                   <p className="text-yellow-500 font-bold">Unclaimed Assets</p>
-                                  <p className="text-sm text-gray-400">You have {coins} Verse waiting for you in the game balance.</p>
+                                  <p className="text-sm text-gray-400">You have {coins} Verse waiting for you in the website balance.</p>
                                 </div>
                               </div>
                               <button 
@@ -1047,6 +1311,30 @@ export default function App() {
                               </button>
                             </motion.div>
                           )}
+
+                          <TelegramCommunityHub />
+
+                          {/* Elegant Premium Bottom Session Controller */}
+                          <div className="flex flex-col items-center gap-3.5 pt-8 pb-4 border-t border-amber-500/10 text-center">
+                            <div className="inline-flex items-center gap-2 bg-amber-500/5 px-4 py-2 rounded-full border border-amber-500/10">
+                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                              <span className="text-xs text-[#8b5e3c] font-mono tracking-wider font-extrabold">
+                                Active Security Session: {maskEmail(username)} • Balance: <span className="text-[#bd9471]">{coins} PTS</span>
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                safeStorage.removeItem('verseUser');
+                                safeStorage.removeItem('verse_game_state');
+                                safeStorage.removeItem('verse_home_sub_state');
+                                safeStorage.removeItem('verse_app_authtype');
+                                window.location.reload();
+                              }}
+                              className="text-xs bg-red-500/15 hover:bg-red-500 text-red-550 hover:text-white px-6 py-2.5 rounded-2xl transition-all font-mono font-black border border-red-500/20 cursor-pointer shadow-sm"
+                            >
+                              LOGOUT SECURITY SESSION
+                            </button>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -1111,13 +1399,35 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-            {!(gameState === 'home' && homeSubState === 'welcome') && (
-              <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
-                <p className="text-sm font-mono uppercase tracking-[0.2em]">
-                  &copy; 2026 Verse Community &bull; Decentralized Hub
-                </p>
-              </footer>
-            )}
+      {(gameState === 'home' && homeSubState === 'features') && (
+        <>
+          {/* Bottom Images Gallery System (26 SNAPSHOTS) */}
+          <BottomGallery />
+
+          {/* LARGE CENTERED BOTTOM LOGO */}
+          <div className="flex flex-col items-center justify-center py-10 pb-16 text-center w-full relative z-10 select-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+              className="group flex flex-col items-center justify-center"
+            >
+              <img 
+                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                alt="Verse Featured Centered Logo" 
+                className="w-64 sm:w-80 h-auto object-contain transition-all duration-500 drop-shadow-[0_12px_40px_rgba(139,94,60,0.2)] group-hover:drop-shadow-[0_20px_50px_rgba(139,94,60,0.45)] group-hover:scale-105 active:scale-98"
+                referrerPolicy="no-referrer"
+              />
+            </motion.div>
+          </div>
+
+          <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
+            <p className="text-sm font-mono uppercase tracking-[0.2em]">
+              &copy; 2026 Verse Community &bull; Decentralized Hub
+            </p>
+          </footer>
+        </>
+      )}
           </motion.div>
         )}
       </AnimatePresence>
