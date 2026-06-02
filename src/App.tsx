@@ -154,43 +154,31 @@ const COMMUNITY_WEBSITE_SLIDES = [
     subtitle: "HONORING MENTORS & LEADERS",
     title: "A Monumental Appreciation",
     content: "First of all a big thank you to my @stone_brb boss. Also expressing gratitude to all the responsible persons of the community, whose tireless efforts and contributions have made our community so strong and organized today.",
-    detail: "Every successful global community begins with strong leaders and dedicated creators. We express our utmost thanks and respect for their hard work."
-  },
-  {
-    subtitle: "COLLECTIVE EFFORT",
-    title: "The Power of Conscious Members",
-    content: "The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member.",
-    detail: "Through individual knowledge sharing, active engagement, and helpful discussions, our platform remains organized and supportive for everyone."
+    detail: "The key to making a community strong is its members. A community truly thrives and becomes sustainable only through the combined efforts of each responsible and conscious member."
   },
   {
     subtitle: "OUR ULTIMATE PURPOSE",
-    title: "Core Focus of Our Website",
+    title: "Main Focus and Purpose",
     content: "The main focus and purpose of my Website is to introduce the future generation to the concept of “Verse” and ''Bitcoin.com wallet''And '' community'' as well as provide a basic understanding of cryptocurrency.",
-    detail: "Through this website, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices. I have tried my best so that through this website the new generation can gain atleast a basic knowledge and understand things simply."
-  },
-  {
-    subtitle: "THE IMPORTANCE OF INITIATION",
-    title: "The Power of the 'Beginning'",
-    content: "One of the most important things in human life is the \"beginning\". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject.",
-    detail: "With this website I wanted to make that starting point easy and interesting. Also, using this website a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading."
+    detail: "Through this game, users will learn—how to buy crypto, how to convert, and get a basic idea of market prices.\n\nI have tried my best so that through this game the new generation can gain atleast a basic knowledge and understand things simply.\n\nOne of the most important things in human life is the \"beginning\". Because, if one does not initiate something, then one does not develop any knowledge or idea about that subject. With this game I wanted to make that starting point easy and interesting.\n\nAlso, using this game a user can learn how to earn points and use those points to learn the basics of crypto marketing or trading."
   },
   {
     subtitle: "ECOSYSTEM DISCOVERY",
     title: "Detailed Overview of Features",
     content: "Our website has been designed to provide clear and easy-to-understand information about the Bitcoin.com Wallet and the Verse Ecosystem, helping both new and existing users learn more about the ecosystem.",
-    detail: "Each section of our website has been engineered with real-time guides, market research data, interactive test environments, and active portal references to build Web3 confidence."
+    detail: "Detailed Overview of Our Website Features:\nOur website has been designed to provide clear and easy-to-understand information about the Bitcoin.com Wallet and the Verse Ecosystem, helping both new and existing users learn more about the ecosystem."
   },
   {
     subtitle: "DIGITAL ASSETS PLATFORM",
     title: "Bitcoin.com Wallet Features",
     content: "In this section, we have provided a simple overview of what the Bitcoin.com Wallet is, how it works, and the features it offers.",
-    detail: "Our goal is to help users gain a basic understanding of the wallet and its functionality in an easy and accessible way.\n\nWe have also included cryptocurrency market prices, trading-related information, crypto news, and other useful resources so that users can access important information from a single platform."
+    detail: "Our goal is to help users gain a basic understanding of the wallet and its functionality in an easy and accessible way.\nOur website has been designed to provide clear and easy-to-understand information about the Bitcoin.com Wallet and the Verse Ecosystem, helping both new and existing users learn more about the ecosystem.\n\nWe have also included cryptocurrency market prices, trading-related information, crypto news, and other useful resources so that users can access important information from a single platform."
   },
   {
     subtitle: "CHRONICLES OF DECENTRALIZATION",
     title: "Crypto Founder and History",
     content: "This section focuses on the founders and history of popular cryptocurrencies. Learn who created a particular cryptocurrency and how the project grew.",
-    detail: "Here, you can learn:\n• Who created a particular cryptocurrency\n• Background information about the founder\n• How the project started\n• How the cryptocurrency gained popularity over time\n\nWe have presented this information in a simple format to help users understand the history of the crypto industry and the people behind some of its most influential projects.\n\nCurrently, we have included a limited number of popular cryptocurrencies. More projects and historical information will be added through future updates."
+    detail: "Crypto Founder and History\nThis section focuses on the founders and history of popular cryptocurrencies. Here, you can learn:\n• Who created a particular cryptocurrency\n• Background information about the founder\n• How the project started\n• How the cryptocurrency gained popularity over time\n\nWe have presented this information in a simple format to help users understand the history of the crypto industry and the people behind some of its most influential projects.\n\nCurrently, we have included a limited number of popular cryptocurrencies. More projects and historical information will be added through future updates."
   },
   {
     subtitle: "INCENTIVIZED WALLET TRAINING",

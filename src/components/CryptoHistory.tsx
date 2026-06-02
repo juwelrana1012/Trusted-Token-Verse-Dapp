@@ -635,14 +635,18 @@ export default function CryptoHistory({ onBack }: { onBack: () => void }) {
   const [selectedToken, setSelectedToken] = useState<CryptoTokenInfo | null>(CRYPTO_TOKENS[0]);
   const [activeTab, setActiveTab] = useState<'creator' | 'idea' | 'tech' | 'popularity'>('creator');
   const [showDetailedModal, setShowDetailedModal] = useState<boolean>(false);
+  const detailsRef = React.useRef<HTMLDivElement>(null);
 
-  // Set active tab to 'creator' when selected token changes
+  // Set active tab to 'creator' when selected token changes, plus scroll to details on mobile
   useEffect(() => {
     setActiveTab('creator');
+    if (window.innerWidth < 1024 && detailsRef.current) {
+      detailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [selectedToken]);
 
   return (
-    <div className="bg-[#03081e] min-h-screen text-slate-100 p-4 sm:p-6 md:p-8 rounded-[2rem] border border-blue-900/30 overflow-hidden relative shadow-2xl">
+    <div className="bg-[#03081e] min-h-screen text-slate-100 p-4 sm:p-6 md:p-8 rounded-[2rem] border border-blue-900/30 overflow-visible relative shadow-2xl">
       {/* Background radial glows */}
       <div className="absolute top-0 left-0 w-80 h-80 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-amber-500/5 rounded-full blur-[120px] pointer-events-none" />
@@ -718,7 +722,7 @@ export default function CryptoHistory({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* DETAILS DISPLAY CARD */}
-        <div className="lg:col-span-8">
+        <div ref={detailsRef} className="lg:col-span-8">
           <AnimatePresence mode="wait">
             {selectedToken ? (
               <motion.div
@@ -726,7 +730,7 @@ export default function CryptoHistory({ onBack }: { onBack: () => void }) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className="bg-[#07112b] border border-blue-900/40 rounded-[2.5rem] p-5 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden"
+                className="bg-[#07112b] border border-blue-900/40 rounded-[2.5rem] p-5 sm:p-7 shadow-2xl space-y-6 relative overflow-visible"
               >
                 {/* Visual Glow */}
                 <div className="absolute top-0 right-0 w-60 h-60 bg-amber-500/5 rounded-full blur-[90px] pointer-events-none" />
@@ -1191,23 +1195,23 @@ export default function CryptoHistory({ onBack }: { onBack: () => void }) {
       {/* VERBATIM RESEARCH CENTER MODAL (More Details) */}
       <AnimatePresence>
         {showDetailedModal && selectedToken && VERBATIM_DOCS[selectedToken.symbol] && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop Blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowDetailedModal(false)}
-              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+              className="fixed inset-0 bg-slate-950/85 backdrop-blur-md"
             />
 
             {/* Modal Body */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.96, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 25 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="relative w-full max-w-2xl max-h-[82vh] bg-[#07112b] border border-amber-500/40 rounded-[2.5rem] shadow-2xl shadow-yellow-500/10 flex flex-col overflow-hidden text-left z-10 text-slate-100"
+              exit={{ opacity: 0, scale: 0.96, y: 15 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] bg-[#07112b] border border-amber-500/40 rounded-[2rem] shadow-2xl shadow-yellow-500/15 flex flex-col overflow-hidden text-left z-10 text-slate-100"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-blue-900/30 bg-slate-950/40">
