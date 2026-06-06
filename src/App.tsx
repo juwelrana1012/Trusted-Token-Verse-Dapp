@@ -11,6 +11,7 @@ import ClaimReward from './components/ClaimReward';
 import TelegramCommunityHub from './components/TelegramCommunityHub';
 import WalletInfoCard from './components/WalletInfoCard';
 import BottomGallery from './components/BottomGallery';
+import VerseEcosystemBook from './components/VerseEcosystemBook';
 import { 
   Coins, 
   Gamepad2, 
@@ -88,7 +89,7 @@ const safeStorage = {
 };
 
 // --- Types ---
-type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward';
+type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook';
 
 interface Token {
   id: string;
@@ -1275,6 +1276,36 @@ export default function App() {
                             </div>
                           </motion.button>
 
+                          {/* Verse Ecosystem Book Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('ecosystemBook')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#171426]/50 to-[#060410]/50 border border-amber-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-amber-500/15 flex items-center justify-center border-2 border-amber-500/20 shadow-md flex-shrink-0">
+                                <BookOpen className="w-7 h-7 text-amber-500 animate-pulse" />
+                              </div>
+                              <div>
+                                <h3 className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight group-hover:text-amber-400 transition-colors flex items-center gap-2">
+                                  Verse Ecosystem book
+                                  <span className="text-[9px] font-mono bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">STUDY &amp; EARN</span>
+                                </h3>
+                                <p className="text-[10px] text-amber-200/95 font-black uppercase tracking-widest mt-1">Decentralization knowledge center &amp; academy chapters</p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-amber-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/ffh6gC0t/file-00000000a9def082ef73e720ba3b610d.png" 
+                                alt="Ecosystem Book Logo" 
+                                className="w-full h-full object-cover rounded-xl animate-pulse"
+                                style={{ animationDuration: '4s' }}
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
                           {coins > 0 && (
                             <motion.div 
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -1380,6 +1411,13 @@ export default function App() {
                 setWalletBalance(prev => prev + amount);
                 addTransaction('receive', amount, 'Daily Reward Check-in Claim matured');
               }}
+            />
+          )}
+
+          {gameState === 'ecosystemBook' && (
+            <VerseEcosystemBook 
+              onBack={() => setGameState('home')} 
+              onEarnCoins={(amount) => handleEarn(amount, 'book_learning')}
             />
           )}
 
