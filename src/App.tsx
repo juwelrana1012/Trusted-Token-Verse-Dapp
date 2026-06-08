@@ -12,6 +12,8 @@ import TelegramCommunityHub from './components/TelegramCommunityHub';
 import WalletInfoCard from './components/WalletInfoCard';
 import BottomGallery from './components/BottomGallery';
 import VerseEcosystemBook from './components/VerseEcosystemBook';
+import CryptoEncyclopedia from './components/CryptoEncyclopedia';
+import VerseInteractiveHub from './components/VerseInteractiveHub';
 import { 
   Coins, 
   Gamepad2, 
@@ -89,7 +91,7 @@ const safeStorage = {
 };
 
 // --- Types ---
-type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook';
+type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook' | 'cryptoEncyclopedia' | 'verseInteractiveHub';
 
 interface Token {
   id: string;
@@ -1306,6 +1308,82 @@ export default function App() {
                             </div>
                           </motion.button>
 
+                          {/* Crypto Encyclopedia Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(6,182,212,0.15)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('cryptoEncyclopedia')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#031b34]/60 to-[#0c0d1e]/50 border border-cyan-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-cyan-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-cyan-500/10 flex items-center justify-center border-2 border-cyan-500/30 shadow-md flex-shrink-0">
+                                <img 
+                                  src="https://i.ibb.co.com/tpLLKjSG/IMG-20260603-145948.png" 
+                                  alt="Crypto Encyclopedia Logo Left" 
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-cyan-350 transition-colors flex items-center gap-2 flex-wrap">
+                                  <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
+                                    Crypto Encyclopedia
+                                  </span>
+                                  <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">WIKIPEDIA</span>
+                                </h3>
+                                <p className="text-[10px] text-cyan-200/90 font-black uppercase tracking-widest mt-1 truncate">
+                                  টার্মসের সহজ বাংলা অভিধান • Web3 Knowledge Archive
+                                </p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-cyan-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/tpLLKjSG/IMG-20260603-145948.png" 
+                                alt="Crypto Encyclopedia Logo Right" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
+                          {/* Verse Interactive Hub Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(99,102,241,0.15)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => setGameState('verseInteractiveHub')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#0a0f2c]/60 to-[#050616]/50 border border-indigo-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-indigo-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-indigo-500/10 flex items-center justify-center border-2 border-indigo-500/35 shadow-md flex-shrink-0">
+                                <img 
+                                  src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                                  alt="Verse Interactive Hub Logo Left" 
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-indigo-350 transition-colors flex items-center gap-2 flex-wrap">
+                                  <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-450 bg-clip-text text-transparent">
+                                    VERSE INTERACTIVE HUB
+                                  </span>
+                                  <span className="text-[9px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">HUB PORTAL</span>
+                                </h3>
+                                <p className="text-[10px] text-indigo-200/90 font-black uppercase tracking-widest mt-1 truncate">
+                                  A world-class Educational Knowledge Platform
+                                </p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                                alt="Verse Interactive Hub Logo Right" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
                           {coins > 0 && (
                             <motion.div 
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -1418,6 +1496,18 @@ export default function App() {
             <VerseEcosystemBook 
               onBack={() => setGameState('home')} 
               onEarnCoins={(amount) => handleEarn(amount, 'book_learning')}
+            />
+          )}
+
+          {gameState === 'cryptoEncyclopedia' && (
+            <CryptoEncyclopedia 
+              onBack={() => setGameState('home')} 
+            />
+          )}
+
+          {gameState === 'verseInteractiveHub' && (
+            <VerseInteractiveHub 
+              onBack={() => setGameState('home')} 
             />
           )}
 
