@@ -43,6 +43,8 @@ import {
   Lock,
   ChevronRight,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   PlusCircle,
   ArrowUpRight,
   ArrowDownLeft,
@@ -152,6 +154,30 @@ const maskEmail = (email: string | null): string => {
   return email;
 };
 
+const FOOTER_LEARN_EN = [
+  "Our website has been designed to help both beginners and experienced users gain practical knowledge about the world of cryptocurrency in an easy and engaging way.",
+  "One of the key features of the platform is the Verse Token System. Through quizzes, educational activities, and community participation, users can earn VERT tokens. These earned tokens are added to your Verse Wallet, where you can experience how a crypto wallet works in a realistic learning environment.",
+  "Through this platform, you can learn:\n• How to earn tokens\n• How to use a crypto wallet\n• How to track digital assets\n• How to trade tokens\n• How to swap and convert cryptocurrencies\n• How to manage digital assets effectively",
+  "My goal was to create a platform that goes beyond theory and provides a learning experience that closely reflects real-world crypto activities. For this reason, every section of the website has been designed to be as practical and realistic as possible.",
+  "Our community is built on trust, education, and mutual support. Just as it has gained recognition and popularity in the past, it continues to grow today, and we believe its impact and reach will become even greater in the future.",
+  "The website also includes a variety of valuable resources, including:\n• Official community links\n• Community group links\n• Bitcoin.com Wallet download links\n• Information about Verse Token\n• Educational guides and reference materials",
+  "Our mission is to educate, empower, and guide people in understanding cryptocurrency and blockchain technology. Through this platform, we aim to help users build knowledge, develop practical skills, and gain confidence in navigating the crypto ecosystem.",
+  "We invite you to join the Verse Community, participate in our learning ecosystem, and grow alongside a community that values knowledge, innovation, and opportunity.",
+  "This website was created with one primary purpose: to help people learn, understand, and gain real-world knowledge about the crypto industry in a simple, accessible, and engaging way."
+];
+
+const FOOTER_LEARN_BN = [
+  "আমাদের ওয়েবসাইটটি এমনভাবে তৈরি করা হয়েছে যাতে নতুন এবং অভিজ্ঞ উভয় ধরনের ব্যবহারকারীই ক্রিপ্টোকারেন্সির জগৎ সম্পর্কে অত্যন্ত সহজে এবং আকর্ষণীয় উপায়ে বাস্তব জ্ঞান অর্জন করতে পারেন।",
+  "এই প্ল্যাটফর্মের অন্যতম মূল বৈশিষ্ট্য হলো Verse Token System (ভার্স টোকেন সিস্টেম)। কুইজ, শিক্ষামূলক কার্যক্রম এবং কমিউনিটিতে সক্রিয় অংশগ্রহণের মাধ্যমে ব্যবহারকারীরা VERT টোকেন উপার্জন করতে পারেন। এই উপার্জিত টোকেনগুলো আপনার Verse ওয়ালেটে যোগ হয়ে যাবে, যেখানে আপনি একটি বাস্তবসম্মত শিক্ষার পরিবেশে ক্রিপ্টো ওয়ালেট কীভাবে কাজ করে তা সরাসরি অনুভব করতে পারবেন।",
+  "এই প্ল্যাটফর্মের মাধ্যমে আপনি যা শিখতে পারবেন:\n• কীভাবে টোকেন উপার্জন করতে হয়\n• কীভাবে একটি ক্রিপ্টো ওয়ালেট ব্যবহার করতে হয়\n• কীভাবে ডিজিটাল সম্পদ ট্র্যাক করতে হয়\n• কীভাবে টোকেন ট্রেড বা কেনাবেচা করতে হয়\n• কীভাবে ক্রিপ্টোকারেন্সি সোয়াপ এবং কনভার্ট করতে হয়\n• কীভাবে ডিজিটাল সম্পদ কার্যকরভাবে পরিচালনা করতে হয়",
+  "আমার লক্ষ্য ছিল এমন একটি প্ল্যাটফর্ম তৈরি করা যা শুধুমাত্র তাত্ত্বিক আলোচনার বাইরে গিয়ে ব্যবহারকারীকে বাস্তবসম্মত ক্রিপ্টো কার্যক্রমের অভিজ্ঞতা প্রদান করবে। এই কারণেই, ওয়েবসাইটের প্রতিটি বিভাগকে যতটা সম্ভব ব্যবহারিক এবং বাস্তবসম্মত করে ডিজাইন করা হয়েছে।",
+  "আমাদের কমিউনিটি গড়ে উঠেছে বিশ্বাস, শিক্ষা এবং পারস্পরিক সহযোগিতার ওপর ভিত্তি করে। অতীতে এটি যেভাবে পরিচিতি এবং জনপ্রিয়তা লাভ করেছিল, আজকেও এটি সেভাবেই প্রতিনিয়ত বৃদ্ধি পাচ্ছে। আমরা বিশ্বাস করি যে ভবিষ্যতে এর প্রভাব এবং পরিধি আরও অনেক গুণ বৃদ্ধি পাবে।",
+  "এই ওয়েবসাইটে বেশ কিছু মূল্যবান রিসোর্স বা তথ্য উৎসও অন্তর্ভুক্ত রয়েছে, যার মধ্যে রয়েছে:\n• অফিসিয়াল কমিউনিটি লিংক\n• কমিউনিটি গ্রুপ লিংক\n• Bitcoin.com ওয়ালেট ডাউনলোড লিংক\n• Verse টোকেন সংক্রান্ত প্রয়োজনীয় তথ্য\n• শিক্ষামূলক গাইড এবং রেফারেন্স রেফারেন্স বিষয়ক উপাদানসমূহ",
+  "আমাদের মিশন হলো মানুষকে ক্রিপ্টোকারেন্সি এবং ব্লকচেইন প্রযুক্তি বুঝতে সাহায্য করা, তাদের স্বাবলম্বী করা এবং সঠিক দিকনির্দেশনা দেওয়া। এই প্ল্যাটফর্মের মাধ্যমে আমরা ব্যবহারকারীদের জ্ঞান বৃদ্ধি করতে, ব্যবহারিক দক্ষতা উন্নত করতে এবং ক্রিপ্টো ইকোসিস্টেমে আত্মবিশ্বাসের সাথে পথ চলতে সাহায্য করতে চাই।",
+  "আমরা আপনাকে Verse কমিউনিটিতে যোগ দিতে, আমাদের শিক্ষামূলক ইকোসিস্টেমে অংশ নিতে এবং এমন একটি কমিউনিটির সাথে একসাথে এগিয়ে যেতে আমন্ত্রণ জানাই যা জ্ঞান, উদ্ভাবন এবং সুযোগকে মূল্য দেয়।",
+  "এই ওয়েবসাইটটি মূলত একটি প্রধান উদ্দেশ্য নিয়ে তৈরি করা হয়েছে: মানুষকে অত্যন্ত সহজ, সহজলভ্য এবং আকর্ষণীয় উপায়ে ক্রিপ্টো ইন্ডাস্ট্রি সম্পর্কে সঠিক এবং বাস্তবমুখী জ্ঞান অর্জন করতে সহায়তা করা।"
+];
+
 const COMMUNITY_WEBSITE_SLIDES = [
   {
     subtitle: "HONORING MENTORS & LEADERS",
@@ -212,6 +238,48 @@ const COMMUNITY_WEBSITE_SLIDES = [
     title: "Our Final Message",
     content: "Our goal is not only to provide information but also to create an educational platform where people can learn, share knowledge, and improve their understanding of Web3 and the crypto industry.",
     detail: "Thank you for visiting our website.\n\nJoin the Verse Community, learn new skills, share knowledge with others, and work together to build a better future for yourself and those around you."
+  },
+  {
+    subtitle: "VERSE ECOSYSTEM STUDY",
+    title: "Verse Ecosystem Book Explained",
+    content: "In the Verse Ecosystem Book, I have explained the concept of an ecosystem in a simple and easy-to-understand way. Readers can learn what an ecosystem is, how an ecosystem network is built, how it operates, how it grows, and how it expands over time.",
+    detail: "In the Verse Ecosystem Book, I have explained the concept of an ecosystem in a simple and easy-to-understand way. Readers can learn what an ecosystem is, how an ecosystem network is built, how it operates, how it grows, and how it expands over time."
+  },
+  {
+    subtitle: "COMPREHENSIVE BLOCKCHAIN GLOSSARY",
+    title: "Crypto Encyclopedia Q&A",
+    content: "I have also included the Crypto Encyclopedia, where I discuss a wide range of topics related to the cryptocurrency industry. To help users gain knowledge and understanding, I have added more than 250 carefully selected questions and answers covering various aspects of the crypto world.",
+    detail: "I have also included the Crypto Encyclopedia, where I discuss a wide range of topics related to the cryptocurrency industry. To help users gain knowledge and understanding, I have added more than 250 carefully selected questions and answers covering various aspects of the crypto world."
+  },
+  {
+    subtitle: "VALUABLE INSIGHTS",
+    title: "Crypto Industry Learning",
+    content: "By studying these questions attentively, you will gain valuable insights into cryptocurrencies, blockchain networks, digital assets, and the overall crypto ecosystem. This knowledge can help you better understand how the industry works and make more informed decisions.",
+    detail: "By studying these questions attentively, you will gain valuable insights into cryptocurrencies, blockchain networks, digital assets, and the overall crypto ecosystem. This knowledge can help you better understand how the industry works and make more informed decisions."
+  },
+  {
+    subtitle: "TRANSACTION SECURITY PROTOCOLS",
+    title: "Crypto Transactions & Security Awareness",
+    content: "In addition, I have included content focused on crypto transactions and security awareness. These resources are designed to help users recognize risks, stay cautious, and build confidence while navigating the crypto space. Whether you are a beginner or someone looking to expand your knowledge, this material provides a strong foundation for your crypto journey.",
+    detail: "In addition, I have included content focused on crypto transactions and security awareness. These resources are designed to help users recognize risks, stay cautious, and build confidence while navigating the crypto space. Whether you are a beginner or someone looking to expand your knowledge, this material provides a strong foundation for your crypto journey."
+  },
+  {
+    subtitle: "VERSE INTERACTIVE PORTAL",
+    title: "Verse Interactive Hub",
+    content: "I have also created the Verse Interactive Hub, where I further explore ecosystem concepts, community building, and many other important topics. Through interactive quizzes and educational content, users can learn how different systems function, how communities grow, and how decentralized networks operate.",
+    detail: "I have also created the Verse Interactive Hub, where I further explore ecosystem concepts, community building, and many other important topics. Through interactive quizzes and educational content, users can learn how different systems function, how communities grow, and how decentralized networks operate."
+  },
+  {
+    subtitle: "DECENTRALIZED SOCIAL SPHERE",
+    title: "Join the Verse Community Network",
+    content: "We invite you to join the Verse Community, expand your influence, contribute positively to the community, and grow alongside like-minded individuals. By sharing your knowledge, support, and engagement, you can help build a stronger ecosystem while creating opportunities for your own future.",
+    detail: "We invite you to join the Verse Community, expand your influence, contribute positively to the community, and grow alongside like-minded individuals. By sharing your knowledge, support, and engagement, you can help build a stronger ecosystem while creating opportunities for your own future."
+  },
+  {
+    subtitle: "DECENTRALIZED VISION",
+    title: "Our Ultimate Community Mission",
+    content: "Our mission is to educate, empower, and guide people toward a better understanding of the crypto world. We hope that the Verse Community will become a valuable source of learning, growth, and opportunity for everyone who joins.",
+    detail: "Our mission is to educate, empower, and guide people toward a better understanding of the crypto world. We hope that the Verse Community will become a valuable source of learning, growth, and opportunity for everyone who joins."
   }
 ];
 
@@ -238,6 +306,8 @@ export default function App() {
   const [username, setUsername] = useState<string | null>(() => safeStorage.getItem('verseUser'));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
+  const [footerDescExpanded, setFooterDescExpanded] = useState<boolean>(false);
+  const [footerDescLang, setFooterDescLang] = useState<'en' | 'bn'>('en');
   
   // Custom Login Flow States
   const [appIsSignUp, setAppIsSignUp] = useState(false);
@@ -1384,6 +1454,44 @@ export default function App() {
                             </div>
                           </motion.button>
 
+                          {/* Our Verse Community Option */}
+                          <motion.button
+                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(20,184,166,0.15)' }}
+                            whileTap={{ scale: 0.99 }}
+                            onClick={() => window.open('https://our-verse-community.vercel.app', '_blank', 'noopener,noreferrer')}
+                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#011c21]/60 to-[#020a10]/50 border border-teal-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-teal-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
+                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-teal-500/10 flex items-center justify-center border-2 border-teal-500/35 shadow-md flex-shrink-0">
+                                <img 
+                                  src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                                  alt="Our Verse Community Logo Left" 
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-teal-350 transition-colors flex items-center gap-2 flex-wrap">
+                                  <span className="bg-gradient-to-r from-teal-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
+                                    OUR VERSE COMMUNITY
+                                  </span>
+                                  <span className="text-[9px] font-mono bg-teal-500/10 text-teal-400 border border-teal-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">COMMUNITY</span>
+                                </h3>
+                                <p className="text-[10px] text-teal-200/90 font-black uppercase tracking-widest mt-1 truncate">
+                                  Join our global decentralized educational collective
+                                </p>
+                              </div>
+                            </div>
+                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                              <img 
+                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                                alt="Our Verse Community Logo Right" 
+                                className="w-full h-full object-cover rounded-xl"
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          </motion.button>
+
                           {coins > 0 && (
                             <motion.div 
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -1521,7 +1629,7 @@ export default function App() {
           <BottomGallery />
 
           {/* LARGE CENTERED BOTTOM LOGO */}
-          <div className="flex flex-col items-center justify-center py-10 pb-16 text-center w-full relative z-10 select-none">
+          <div className="flex flex-col items-center justify-center py-10 pb-8 text-center w-full relative z-10 select-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1535,6 +1643,110 @@ export default function App() {
                 referrerPolicy="no-referrer"
               />
             </motion.div>
+          </div>
+
+          {/* EDUCATIONAL FOOTER SUMMARY CARD WITH ENGLISH/BENGALI TRANSLATION */}
+          <div className="max-w-4xl mx-auto px-6 mb-16 relative z-10">
+            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-xl relative overflow-hidden transition-all hover:shadow-2xl">
+              {/* Background gradient embellishment */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/5 to-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="relative z-10 space-y-6">
+                {/* Header Row */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-6">
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-teal-600 via-emerald-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-tight">
+                      {footerDescLang === 'en' ? 'What can you learn from our website?' : 'আমাদের ওয়েবসাইট থেকে আপনি কী কী শিখতে পারবেন?'}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-mono mt-1 uppercase tracking-wider">
+                      {footerDescLang === 'en' ? 'Interactive Learning Platform Guide' : 'ইন্টারেক্টিভ লার্নিং প্ল্যাটফর্ম সহায়িকা'}
+                    </p>
+                  </div>
+                  
+                  {/* Language Switcher Toggle */}
+                  <div className="flex items-center gap-1.5 self-start sm:self-auto bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                    <button
+                      onClick={() => setFooterDescLang('en')}
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        footerDescLang === 'en'
+                          ? 'bg-white text-teal-600 shadow-sm border border-gray-100'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      🇬🇧 English
+                    </button>
+                    <button
+                      onClick={() => setFooterDescLang('bn')}
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                        footerDescLang === 'bn'
+                          ? 'bg-white text-teal-600 shadow-sm border border-gray-100'
+                          : 'text-slate-500 hover:text-slate-900'
+                      }`}
+                    >
+                      🇧🇩 বাংলা
+                    </button>
+                  </div>
+                </div>
+
+                {/* Spaced Out Text Content ("একটু ফাঁকা ফাঁকা করে লেখবা") */}
+                <div className="text-sm sm:text-base text-slate-600 leading-relaxed space-y-6 font-medium transition-all duration-300">
+                  {!footerDescExpanded ? (
+                    // Show first paragraph as summary
+                    <p className="first-letter:text-3xl first-letter:font-black first-letter:text-teal-600 first-letter:mr-2 first-letter:float-left">
+                      {footerDescLang === 'en' ? FOOTER_LEARN_EN[0] : FOOTER_LEARN_BN[0]}
+                    </p>
+                  ) : (
+                    // Show everything beautifully mapped with gap
+                    (footerDescLang === 'en' ? FOOTER_LEARN_EN : FOOTER_LEARN_BN).map((para, pIdx) => {
+                      // Check if it contains bullet points to render nicely as lists
+                      if (para.includes('•')) {
+                        const lines = para.split('\n');
+                        const listTitle = lines[0];
+                        const bullets = lines.slice(1);
+                        return (
+                          <div key={pIdx} className="space-y-3 bg-teal-50/20 border border-teal-500/5 p-6 rounded-2xl my-4">
+                            <p className="font-bold text-slate-800">{listTitle}</p>
+                            <ul className="space-y-2 pl-4 sm:pl-6 text-slate-600">
+                              {bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="flex items-start gap-2 text-sm sm:text-base">
+                                  <span className="text-teal-500 font-bold mt-0.5">•</span>
+                                  <span>{b.replace('•', '').trim()}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      }
+                      return (
+                        <p key={pIdx} className={`${pIdx === 0 ? 'first-letter:text-3xl first-letter:font-black first-letter:text-teal-600 first-letter:mr-2 first-letter:float-left' : ''}`}>
+                          {para}
+                        </p>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Detail Toggle Action Buttons */}
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={() => setFooterDescExpanded(!footerDescExpanded)}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-95 transition-all text-sm cursor-pointer"
+                  >
+                    {footerDescExpanded ? (
+                      <>
+                        <span>{footerDescLang === 'en' ? 'Show Less' : 'কম বিস্তারিত দেখান'}</span>
+                        <ChevronUp className="w-4 h-4 text-white/90" />
+                      </>
+                    ) : (
+                      <>
+                        <span>{footerDescLang === 'en' ? 'More Details' : 'আরও বিস্তারিত'}</span>
+                        <ChevronDown className="w-4 h-4 text-white/90" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
@@ -1904,6 +2116,7 @@ function WalletSimulator({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [expandedIntro, setExpandedIntro] = useState<boolean>(false);
 
   // --- Staking Yield Farms & Pools State (Screenshot 1: Farms & Pools) ---
   const [stakedAmounts, setStakedAmounts] = useState<Record<string, number>>(() => {
@@ -2241,6 +2454,58 @@ function WalletSimulator({
       exit={{ opacity: 0, y: -20 }}
       className="space-y-8"
     >
+      {/* Premium Educational Journey Banner */}
+      <div className="w-full bg-white border border-[#c0a080]/20 rounded-[2rem] p-6 shadow-sm relative overflow-hidden text-slate-800">
+        <div className="absolute top-0 right-0 p-6 text-[#c0a080]/10 pointer-events-none">
+          <BookOpen className="w-20 h-20 stroke-[1]" />
+        </div>
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-[#c0a080]/10 border border-[#c0a080]/20 flex items-center justify-center text-[#8b5e3c] flex-shrink-0">
+            <Info className="w-6 h-6" />
+          </div>
+          <div className="flex-1 min-w-0 space-y-1.5">
+            <h4 className="text-sm font-black text-[#8b5e3c] uppercase tracking-wider">
+              Educational Wallet Story &amp; Mission / ওয়ালেট মিশন ও ইতিহাস
+            </h4>
+            
+            <div className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
+              {!expandedIntro ? (
+                <p>
+                  <span>When I first entered the world of cryptocurrency, I had very little knowledge...</span>{' '}
+                  <button
+                    onClick={() => setExpandedIntro(true)}
+                    className="text-[#8b5e3c] hover:text-[#c0a080] font-black underline cursor-pointer ml-1 inline-flex items-center gap-1 focus:outline-none"
+                  >
+                    More Details
+                  </button>
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <p>
+                    When I first entered the world of cryptocurrency, I had very little knowledge about how to swap, trade, convert, or sell crypto assets. Due to this lack of understanding, I became a victim of scams on several occasions and experienced financial losses.
+                  </p>
+                  <p>
+                    These experiences inspired me to create Verse Wallet. My goal was to build an educational platform where beginners could learn the fundamentals of cryptocurrency in a simple and easy-to-understand way.
+                  </p>
+                  <p>
+                    Through Verse Wallet, new users can learn what cryptocurrency is, how to use a wallet, how to swap, trade, and convert digital assets, and how to manage their funds safely and efficiently.
+                  </p>
+                  <p>
+                    I believe that knowledge is the foundation of success and security in the crypto space, and Verse Wallet is designed to provide a simple and reliable starting point for anyone beginning their crypto journey.
+                  </p>
+                  <button
+                    onClick={() => setExpandedIntro(false)}
+                    className="text-[#8b5e3c] hover:text-[#c0a080] font-black underline cursor-pointer mt-2 block focus:outline-none"
+                  >
+                    Show Less
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Dynamic Top Wallet System Bar */}
       <div className="w-full flex flex-col sm:flex-row justify-between items-center bg-white border border-gray-100 p-4 rounded-3xl shadow-sm gap-4">
         <div className="flex items-center gap-4 w-full sm:w-auto">
