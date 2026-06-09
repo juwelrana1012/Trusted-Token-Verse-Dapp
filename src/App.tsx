@@ -14,6 +14,7 @@ import BottomGallery from './components/BottomGallery';
 import VerseEcosystemBook from './components/VerseEcosystemBook';
 import CryptoEncyclopedia from './components/CryptoEncyclopedia';
 import VerseInteractiveHub from './components/VerseInteractiveHub';
+import { useSecurity } from './components/SecurityFirewall';
 import { 
   Coins, 
   Gamepad2, 
@@ -302,7 +303,14 @@ function Particle({ x, y }: { x: number; y: number; key?: any }) {
 }
 
 export default function App() {
+  const { triggerAction } = useSecurity();
   const [gameState, setGameState] = useState<GameState>('home');
+
+  // Sync state transitions to anti-flooding engine
+  useEffect(() => {
+    triggerAction('navigation', `Route transition triggered to section: ${gameState}`);
+  }, [gameState]);
+
   const [username, setUsername] = useState<string | null>(() => safeStorage.getItem('verseUser'));
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
