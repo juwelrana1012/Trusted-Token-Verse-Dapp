@@ -1355,8 +1355,8 @@ export default function App() {
                           <div className="w-full mt-24 sm:mt-28 space-y-6">
                             <div className="flex items-center gap-3 pb-3 border-b border-dashed border-slate-200 dark:border-slate-800">
                               <div className="w-3 h-6 rounded-full" style={{ backgroundImage: 'linear-gradient(to bottom, #3B82F6, #8B5CF6, #D946EF)' }} />
-                              <h3 className="text-lg sm:text-xl font-black font-sans tracking-tight bg-clip-text text-transparent uppercase" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
-                                {t("How it Works", "এটি যেভাবে কাজ করে")}
+                              <h3 className="text-lg sm:text-xl font-black font-sans tracking-tight bg-clip-text text-transparent uppercase" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
+                                {t("HOW IT WORKS", "HOW IT WORKS")}
                               </h3>
                             </div>
 
@@ -1366,7 +1366,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (1) About this website
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
@@ -1381,7 +1381,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (2) Educational and informational platforms
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
@@ -1399,7 +1399,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (3) For official app usage
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
@@ -1424,7 +1424,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (4) Learn about ecosystems
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
@@ -1439,7 +1439,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (5) VERSE AND RELATED SUBJECTS
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
@@ -1454,7 +1454,7 @@ export default function App() {
                                 displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
                                 <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
-                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                   (6) Especially important for new users
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
