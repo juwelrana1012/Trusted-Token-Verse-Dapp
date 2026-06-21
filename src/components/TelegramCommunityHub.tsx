@@ -498,6 +498,44 @@ const TOPIC_MORE_DETAILS: Record<number, string> = {
   26: "Wallet is the primary development feedback loop for the Bitcoin.com Wallet. Users discuss multi-chain utility roadmap features, test beta updates, share feature suggestions like custom fee sliders, and interact directly with wallet designers."
 };
 
+const renderHighlightedText = (text: string) => {
+  if (!text) return "";
+  
+  const highlightPatterns = [
+    { pattern: /(Bitcoin\.com)/gi, className: "text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-md font-extrabold shadow-sm inline-block border border-amber-200/40 my-0.5" },
+    { pattern: /(\bverse\b)/gi, className: "text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-md font-black italic inline-block border border-purple-100 my-0.5" },
+    { pattern: /(\btoken\b|\btokens\b|\bcoin\b|\bcoins\b|\bwallet\b|\bwallets\b)/gi, className: "text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded font-bold border border-indigo-100/30" },
+    { pattern: /(\brewards?\b|\bearn\b|\bcashback\b|\bloyalty\b)/gi, className: "text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-black uppercase tracking-wider text-[11px] border border-rose-100" },
+    { pattern: /(\bsecurity\b|\bsecured\b|safe|safety|\bprivate key\b|\bseed phrase\b|self-custodial)/gi, className: "text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold border border-emerald-100" },
+    { pattern: /(\bdecentralized\b|\bweb3\b|\bblockchain(s)?\b|\bdapp(s)?\b|\bdefi\b|\bdex\b|\bnon-custodial\b)/gi, className: "text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide text-[11px] border border-blue-100" },
+    { pattern: /(\bcommunity\b|\bcollaboration\b|\bgovernance\b|\btelegram\b|\bgroup\b)/gi, className: "text-teal-600 bg-teal-50 px-1 py-0.5 rounded font-bold border border-teal-100/30" }
+  ];
+
+  const patternStrings = highlightPatterns.map(p => p.pattern.source);
+  const combinedRegex = new RegExp(`(${patternStrings.join('|')})`, 'gi');
+
+  const parts = text.split(combinedRegex);
+  if (parts.length <= 1) return <span>{text}</span>;
+
+  return (
+    <span>
+      {parts.map((part, index) => {
+        if (!part) return null;
+        for (const hp of highlightPatterns) {
+          if (part.match(hp.pattern)) {
+            return (
+              <span key={index} className={hp.className}>
+                {part}
+              </span>
+            );
+          }
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+};
+
 export default function TelegramCommunityHub() {
   const [isGroupExpanded, setIsGroupExpanded] = useState<boolean>(true);
   const [expandedTopicId, setExpandedTopicId] = useState<number | null>(null);
@@ -532,42 +570,42 @@ export default function TelegramCommunityHub() {
 
   return (
     <div className="w-full max-w-4xl mx-auto my-12" id="bitcoin-community-hub-container">
-      {/* Outer Styled Card Frame */}
-      <div className="bg-[#0c142c] border border-blue-900/40 rounded-[2.5rem] overflow-hidden shadow-2xl relative transition-all">
+      {/* Outer Styled Card Frame - Bright white background as requested */}
+      <div className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl relative transition-all">
         {/* Decorative Telegram blue top line overlay */}
-        <div className="h-1.5 bg-gradient-to-r from-sky-500 via-indigo-600 to-sky-400 w-full" />
+        <div className="h-1.5 bg-gradient-to-r from-sky-450 via-indigo-500 to-sky-400 w-full" />
         
         {/* Core BG radial glow */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/5 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-505/5 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-50 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#fbf0e8]/30 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Telegram Header Interface */}
         <div 
           onClick={toggleGroup}
-          className="p-6 md:p-8 bg-sky-950/15 border-b border-blue-900/30 flex items-center justify-between gap-4 cursor-pointer hover:bg-sky-950/25 transition-all select-none"
+          className="p-6 md:p-8 bg-slate-50 border-b border-slate-150 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-100/60 transition-all select-none"
         >
           <div className="flex items-center gap-4 sm:gap-6">
             {/* Telegram circular icon */}
-            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg flex-shrink-0">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white shadow-md flex-shrink-0">
               <Send className="w-7 h-7 rotate-45 transform -translate-x-0.5 translate-y-0.5" />
             </div>
 
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-300">
+                <span className="text-xl sm:text-2xl font-black text-slate-900">
                   Bitcoin.com Community Hub
                 </span>
-                <CheckCircle2 className="w-5.5 h-5.5 text-sky-400 fill-sky-400/20 flex-shrink-0 animate-pulse" />
+                <CheckCircle2 className="w-5.5 h-5.5 text-sky-500 fill-sky-500/10 flex-shrink-0 animate-pulse" />
               </div>
-              <p className="text-[11px] font-mono tracking-wider text-slate-400 font-bold uppercase mt-1 flex items-center gap-2">
+              <p className="text-[11px] font-mono tracking-wider text-slate-500 font-bold uppercase mt-1 flex items-center gap-2">
                 <span className="inline-block w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                26 Official Topics • 18,304 Active Members
+                26 Official Topics
               </p>
             </div>
           </div>
 
-          <div className="text-slate-400 bg-sky-950/50 p-2.5 rounded-xl border border-sky-500/10 hover:text-white transition-all transform hover:scale-[1.05]">
-            {isGroupExpanded ? <ChevronUp className="w-6 h-6 text-sky-400" /> : <ChevronDown className="w-6 h-6 text-sky-400" />}
+          <div className="text-slate-500 bg-slate-150/80 p-2.5 rounded-xl border border-slate-300/40 hover:text-slate-900 transition-all transform hover:scale-[1.03]">
+            {isGroupExpanded ? <ChevronUp className="w-6 h-6 text-sky-500" /> : <ChevronDown className="w-6 h-6 text-sky-500" />}
           </div>
         </div>
 
@@ -579,28 +617,28 @@ export default function TelegramCommunityHub() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.45, ease: "easeInOut" }}
-              className="overflow-hidden"
+              className="overflow-hidden bg-white"
             >
               {/* Premium Telegram-Style Interactive Group Profile Card */}
-              <div className="px-6 md:px-8 pt-6 pb-2">
-                <div className="bg-sky-955/10 border border-blue-900/35 rounded-[2rem] p-5 sm:p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row gap-6 items-start">
+              <div className="px-6 md:px-8 pt-6 pb-2 bg-white">
+                <div className="bg-slate-50 border border-slate-200/80 rounded-[2rem] p-5 sm:p-7 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-6 items-start">
                   
                   {/* Subtle Brand Watermark Background */}
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/5 rounded-full blur-[60px] pointer-events-none" />
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-sky-50 rounded-full blur-[60px] pointer-events-none" />
                   
                   {/* Avatar Section using high-quality official Bitcoin.com logo instead of the screen capture */}
                   <div className="flex flex-col items-center gap-2.5 flex-shrink-0 mx-auto md:mx-0 relative z-10">
                     <div 
-                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-emerald-500/35 hover:border-emerald-500/60 shadow-xl overflow-hidden relative group/avatar transition-all duration-300 pointer-events-none"
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-emerald-500/20 hover:border-emerald-500/40 shadow-md overflow-hidden relative group/avatar transition-all duration-300 pointer-events-none"
                     >
                       <img 
                         src="https://i.ibb.co/hx1FvtyV/file-00000000bc08720b9442e03fc47020a2.png" 
                         alt="Bitcoin.com Group Logo" 
-                        className="w-full h-full object-cover p-2 bg-slate-900 transition-transform duration-500 group-hover/avatar:scale-105"
+                        className="w-full h-full object-cover p-2 bg-slate-50 transition-transform duration-500 group-hover/avatar:scale-105"
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <span className="text-[10px] sm:text-xs font-mono text-emerald-400 font-extrabold tracking-widest uppercase flex items-center gap-1 select-none">
+                    <span className="text-[10px] sm:text-xs font-mono text-emerald-600 font-extrabold tracking-widest uppercase flex items-center gap-1 select-none">
                       ⚡ Official Logo
                     </span>
                   </div>
@@ -610,48 +648,37 @@ export default function TelegramCommunityHub() {
                     {/* Header: Title and online counters */}
                     <div>
                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                        <h4 className="text-2xl sm:text-3xl font-black text-slate-150 tracking-tight leading-tight uppercase font-sans">
+                        <h4 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase font-sans">
                           Bitcoin.com
                         </h4>
-                        <span className="bg-sky-500 text-slate-950 font-sans text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 select-none">
-                          <CheckCircle2 className="w-3.5 h-3.5 fill-slate-950" /> Verified Group
+                        <span className="bg-sky-100 text-sky-800 font-sans text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 select-none border border-sky-200">
+                          <CheckCircle2 className="w-3.5 h-3.5 fill-sky-700 text-white" /> Verified Group
                         </span>
                       </div>
-                      <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                      <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
                         Ecosystem Development Community Hub
                       </p>
-                      
-                      {/* Live Indicators in Telegram Style */}
-                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2 text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                        <span className="flex items-center gap-1.5 bg-slate-900/40 px-3 py-1 rounded-xl border border-blue-900/10">
-                          👥 18,304 Members
-                        </span>
-                        <span className="flex items-center gap-1.5 bg-slate-900/40 px-3 py-1 rounded-xl border border-blue-900/10 text-emerald-400">
-                          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                          247 Online
-                        </span>
-                      </div>
                     </div>
 
                     {/* Compact Interactive Info List */}
-                    <div className="p-4 sm:p-5 rounded-2xl bg-sky-955/20 border border-blue-900/30 text-left space-y-4">
+                    <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 text-left space-y-4 shadow-sm">
                       
                       {/* Description Field from screen capture */}
                       <div>
-                        <span className="text-[10px] font-mono text-emerald-450 font-black uppercase tracking-widest block mb-1">
-                          📋 Group Description / বিবরণী
+                        <span className="text-[10px] font-mono text-[#8b5e3c] font-black uppercase tracking-widest block mb-1">
+                          📋 Group Description
                         </span>
-                        <p className="text-xs sm:text-sm text-slate-205 leading-relaxed font-semibold">
-                          Since 2015, Bitcoin.com has been a global leader in introducing newcomers to crypto. We make it easy for anyone to buy, spend, trade, invest, earn, and stay up-to-date on cryptocurrency and the future of finance.
+                        <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-semibold">
+                          Since 2015, {renderHighlightedText("Bitcoin.com")} has been a global leader in introducing newcomers to crypto. We make it easy for anyone to buy, spend, trade, invest, earn, and stay up-to-date on cryptocurrency and the future of finance.
                         </p>
                       </div>
 
-                      <div className="h-px bg-blue-900/20" />
+                      <div className="h-px bg-slate-150" />
 
                       {/* Official Hyperlinks Rows */}
                       <div>
                         <span className="text-[10px] font-mono text-emerald-450 font-black uppercase tracking-widest block mb-1.5">
-                          🔗 Community Channels & Links (ক্লিক করুন)
+                          🔗 Community Channels & Links
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                           {/* Announcement Link */}
@@ -752,33 +779,33 @@ export default function TelegramCommunityHub() {
                 </div>
               </div>
 
-              {/* Telegram Hub Description Introduction */}
+              {/* Telegram Hub Description Introduction - Light styling with highlights */}
               <div className="px-6 md:px-8 pt-4 pb-4">
-                <div className="p-5 rounded-2xl bg-sky-955/10 border border-sky-400/10 text-slate-300 leading-relaxed text-xs sm:text-sm space-y-3">
-                  <p className="font-semibold text-slate-205">
-                    With 26 specialized topics, the Bitcoin.com Community Hub provides an organized environment where members can learn, build, collaborate, share ideas, access support, participate in regional communities, and contribute to the growth of the global Bitcoin.com and Verse ecosystem.
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-800 leading-relaxed text-xs sm:text-sm space-y-3 shadow-inner">
+                  <p className="font-semibold text-slate-700 font-sans">
+                    With 26 specialized topics, the {renderHighlightedText("Bitcoin.com")} Community Hub provides an organized environment where members can learn, build, collaborate, share ideas, access support, participate in regional communities, and contribute to the growth of the global Bitcoin.com and {renderHighlightedText("Verse")} ecosystem.
                   </p>
-                  <p className="text-slate-400 text-xs">
-                    Whether your interests lie in education, development, research, events, content creation, gaming, or community building, there is a dedicated space designed to help you connect, grow, and succeed within Web3. Expand topics row-by-row below to learn.
+                  <p className="text-slate-500 text-xs font-medium font-sans">
+                    Whether your interests lie in education, development, research, events, content creation, gaming, or community building, there is a dedicated space designed to help you connect, grow, and succeed within {renderHighlightedText("Web3")}. Expand topics row-by-row below to learn.
                   </p>
                 </div>
               </div>
 
-              {/* Topics Search Filter Bar */}
-              <div className="px-6 md:px-8 py-3 flex items-center">
+              {/* Topics Search Filter Bar - Light styling */}
+              <div className="px-6 md:px-8 py-3 flex items-center bg-white">
                 <div className="relative w-full">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
                     type="text" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search 26 Topics..."
-                    className="w-full bg-[#050b1a] border border-blue-900/50 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none rounded-2xl pl-12 pr-4 py-3 text-xs text-white placeholder-slate-500 font-semibold transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none rounded-2xl pl-12 pr-4 py-3 text-xs text-slate-800 placeholder-slate-400 font-semibold transition-all shadow-inner"
                   />
                   {searchQuery && (
                     <button 
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-sky-400 font-black font-mono hover:underline"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-sky-650 font-black font-mono hover:underline"
                     >
                       CLEAR
                     </button>
@@ -787,10 +814,10 @@ export default function TelegramCommunityHub() {
               </div>
 
               {/* Serial List of 26 Topics */}
-              <div className="px-6 md:px-8 pb-8 pt-2 space-y-4 max-h-[850px] overflow-y-auto custom-scrollbar">
+              <div className="px-6 md:px-8 pb-8 pt-2 space-y-4 max-h-[850px] overflow-y-auto custom-scrollbar bg-white">
                 {filteredTopics.length === 0 ? (
                   <div className="text-center py-10">
-                    <p className="text-slate-505 font-semibold text-sm">No topics found matching "{searchQuery}"</p>
+                    <p className="text-slate-500 font-semibold text-sm">No topics found matching "{searchQuery}"</p>
                   </div>
                 ) : (
                   filteredTopics.map((topic, index) => {
@@ -800,8 +827,8 @@ export default function TelegramCommunityHub() {
                         key={topic.id}
                         className={`border rounded-2xl transition-all ${
                           isExpanded 
-                            ? 'bg-[#0e1735] border-sky-500/50 shadow-lg shadow-sky-500/5' 
-                            : 'bg-[#080d22]/50 border-blue-900/30 hover:border-blue-900/60 hover:bg-[#0a112c]/65'
+                            ? 'bg-slate-50/70 border-[#8b5e3c]/30 shadow-md' 
+                            : 'bg-white border-slate-200/90 hover:border-slate-350 hover:bg-slate-50/20 shadow-sm'
                         }`}
                       >
                         {/* Topic Row Header */}
@@ -811,7 +838,7 @@ export default function TelegramCommunityHub() {
                         >
                           <div className="flex items-center gap-3.5">
                             {/* Icon rendering logic */}
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner font-black">
+                            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden shadow-sm font-black">
                               {topic.iconType === 'symbol' && (
                                 <div className={`w-full h-full flex items-center justify-center text-lg ${topic.iconBgColor} ${topic.iconTextColor}`}>
                                   {topic.iconValue}
@@ -821,7 +848,7 @@ export default function TelegramCommunityHub() {
                                 <img 
                                   src={topic.iconValue} 
                                   alt={topic.name}
-                                  className="w-full h-full object-cover p-0.5 bg-slate-900"
+                                  className="w-full h-full object-cover p-0.5 bg-slate-50"
                                   referrerPolicy="no-referrer"
                                 />
                               )}
@@ -834,8 +861,8 @@ export default function TelegramCommunityHub() {
                             </div>
 
                             <div>
-                              <span className="text-xs font-mono text-sky-400 font-bold uppercase tracking-widest block mb-0.5">Topic {topic.id}</span>
-                              <h4 className="text-sm sm:text-base font-extrabold text-white group-hover:text-sky-300">
+                              <span className="text-xs font-mono text-sky-600 font-bold uppercase tracking-widest block mb-0.5">Topic {topic.id}</span>
+                              <h4 className="text-sm sm:text-base font-extrabold text-slate-900 group-hover:text-sky-650 transition-colors">
                                 {topic.name}
                               </h4>
                             </div>
@@ -843,9 +870,9 @@ export default function TelegramCommunityHub() {
 
                           <div className="flex items-center gap-2">
                             {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-sky-400" />
+                              <ChevronUp className="w-4 h-4 text-sky-600" />
                             ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-500" />
+                              <ChevronDown className="w-4 h-4 text-slate-400" />
                             )}
                           </div>
                         </div>
@@ -858,25 +885,25 @@ export default function TelegramCommunityHub() {
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
                               transition={{ duration: 0.3, ease: 'easeOut' }}
-                              className="overflow-hidden border-t border-blue-900/20"
+                              className="overflow-hidden border-t border-slate-200"
                             >
-                              <div className="p-5 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                              <div className="p-5 space-y-4 text-xs sm:text-sm text-slate-800 leading-relaxed bg-white">
                                 {/* Overview segment */}
                                 <div className="space-y-1.5">
-                                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#bd9471] font-black block">📖 Overview</span>
-                                  <p className="bg-sky-950/20 border border-sky-400/5 p-4 rounded-xl font-normal text-slate-205">
-                                    {topic.overview}
+                                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#8b5e3c] font-black block">📖 Overview</span>
+                                  <p className="bg-slate-50 border border-slate-200 p-4 rounded-xl font-medium text-slate-800 shadow-inner">
+                                    {renderHighlightedText(topic.overview)}
                                   </p>
                                 </div>
 
                                 {/* What you'll find here segment */}
                                 <div className="space-y-2">
-                                  <span className="text-[10px] uppercase font-mono tracking-widest text-sky-450 font-black block">🔍 What You'll Find Here</span>
+                                  <span className="text-[10px] uppercase font-mono tracking-widest text-sky-600 font-black block">🔍 What You'll Find Here</span>
                                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                     {topic.findHere.map((item, idx) => (
-                                      <li key={idx} className="flex items-start gap-2 bg-[#050b1a]/40 p-2.5 rounded-lg border border-blue-900/10">
-                                        <Send className="w-3.5 h-3.5 rotate-45 text-sky-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-slate-300 text-xs font-semibold">{item}</span>
+                                      <li key={idx} className="flex items-start gap-2 bg-slate-50/50 p-2.5 rounded-lg border border-slate-200">
+                                        <Send className="w-3.5 h-3.5 rotate-45 text-sky-505 mt-0.5 flex-shrink-0" />
+                                        <span className="text-slate-800 text-xs font-semibold">{renderHighlightedText(item)}</span>
                                       </li>
                                     ))}
                                   </ul>
@@ -884,22 +911,22 @@ export default function TelegramCommunityHub() {
 
                                 {/* Why it matters segment */}
                                 <div className="space-y-1.5 pt-1">
-                                  <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400 font-black block">🌟 Why It Matters</span>
-                                  <p className="bg-[#0f2122] border border-emerald-500/10 p-3.5 rounded-xl font-medium text-emerald-250 italic">
-                                    {topic.whyMatters}
+                                  <span className="text-[10px] uppercase font-mono tracking-widest text-[#8b5e3c] font-black block">🌟 Why It Matters</span>
+                                  <p className="bg-amber-50/40 border border-amber-200/50 p-3.5 rounded-xl font-medium text-slate-800 italic">
+                                    {renderHighlightedText(topic.whyMatters)}
                                   </p>
                                 </div>
 
                                 {/* MORE DETAILS TOGGLE SECTION */}
-                                <div className="pt-3 border-t border-blue-900/10 flex flex-col items-start gap-1">
+                                <div className="pt-3 border-t border-slate-200 flex flex-col items-start gap-1">
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setExpandedMoreDetailsTopicId(expandedMoreDetailsTopicId === topic.id ? null : topic.id);
                                     }}
-                                    className="text-[11px] font-black tracking-widest text-sky-400 hover:text-sky-300 hover:underline uppercase transition-all flex items-center gap-1.5 cursor-pointer scale-100 active:scale-95"
+                                    className="text-[11px] font-black tracking-widest text-sky-600 hover:text-sky-700 hover:underline uppercase transition-all flex items-center gap-1.5 cursor-pointer scale-100 active:scale-95"
                                   >
-                                    {expandedMoreDetailsTopicId === topic.id ? '▲ Less Details' : '▼ More Details (বিস্তারিত দেখুন)'}
+                                    {expandedMoreDetailsTopicId === topic.id ? '▲ Less Details' : '▼ More Details'}
                                   </button>
                                   
                                   <AnimatePresence>
@@ -909,11 +936,11 @@ export default function TelegramCommunityHub() {
                                         animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
                                         exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                         transition={{ duration: 0.25, ease: "easeOut" }}
-                                        className="overflow-hidden w-full bg-sky-950/20 border border-sky-400/10 rounded-xl p-4.5 text-xs text-slate-300 leading-relaxed font-normal"
+                                        className="overflow-hidden w-full bg-slate-50 border border-slate-200 rounded-xl p-4.5 text-xs text-slate-800 leading-relaxed font-normal shadow-inner"
                                       >
-                                        <p className="font-extrabold text-sky-300 uppercase tracking-widest text-[9px] mb-1.5">📋 Detailed Discussion • বিস্তারিত আলোচনা</p>
-                                        <p className="text-slate-200">
-                                          {TOPIC_MORE_DETAILS[topic.id] || "Detailed guidelines, analysis schedules, and community plans for this topic are being updated regularly by our global managers."}
+                                        <p className="font-extrabold text-[#8b5e3c] uppercase tracking-widest text-[9px] mb-1.5">📋 Detailed Discussion • Community Info</p>
+                                        <p className="text-slate-705 font-semibold">
+                                          {renderHighlightedText(TOPIC_MORE_DETAILS[topic.id] || "Detailed guidelines, analysis schedules, and community plans for this topic are being updated regularly by our global managers.")}
                                         </p>
                                       </motion.div>
                                     )}
@@ -929,15 +956,15 @@ export default function TelegramCommunityHub() {
                 )}
               </div>
 
-              {/* Community Summary Telegram Footer Banner */}
+              {/* Community Summary Telegram Footer Banner - Light rendering */}
               <div className="px-6 md:px-8 pb-8 pt-2">
-                <div className="p-6 bg-gradient-to-r from-sky-950/35 to-indigo-950/35 border border-sky-500/15 rounded-[1.8rem] space-y-3">
-                  <h4 className="text-sky-300 font-bold text-sm tracking-wider uppercase flex items-center gap-2">
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-[1.8rem] space-y-3 shadow-inner">
+                  <h4 className="text-[#8b5e3c] font-bold text-sm tracking-wider uppercase flex items-center gap-2">
                     <Layers className="w-4 h-4" />
                     Community Hub Summary
                   </h4>
-                  <p className="text-slate-350 leading-relaxed text-xs">
-                    With 26 specialized topics, the Bitcoin.com Community Hub provides an organized environment where members can learn, build, collaborate, share ideas, access support, participate in regional communities, and contribute to the growth of the global Bitcoin.com and Verse ecosystem. Whether your interests lie in education, development, research, events, content creation, gaming, or community building, there is a dedicated space designed to help you connect, grow, and succeed within Web3.
+                  <p className="text-slate-700 leading-relaxed text-xs font-semibold">
+                    With 26 specialized topics, the {renderHighlightedText("Bitcoin.com")} Community Hub provides an organized environment where members can learn, build, collaborate, share ideas, access support, participate in regional communities, and contribute to the growth of the global Bitcoin.com and {renderHighlightedText("Verse")} ecosystem. Whether your interests lie in education, development, research, events, content creation, gaming, or community building, there is a dedicated space designed to help you connect, grow, and succeed within {renderHighlightedText("Web3")}.
                   </p>
                 </div>
               </div>

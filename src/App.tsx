@@ -5,12 +5,11 @@
 
 import React, { useState, useEffect, ReactNode, MouseEvent, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import BitcoinWalletDashboard from './components/BitcoinWalletDashboard';
 import CryptoHistory from './components/CryptoHistory';
 import ClaimReward from './components/ClaimReward';
 import TelegramCommunityHub from './components/TelegramCommunityHub';
+import EcosystemActivityLog from './components/EcosystemActivityLog';
 import WalletInfoCard from './components/WalletInfoCard';
-import BottomGallery from './components/BottomGallery';
 import VerseEcosystemBook from './components/VerseEcosystemBook';
 import CryptoEncyclopedia from './components/CryptoEncyclopedia';
 import VerseInteractiveHub from './components/VerseInteractiveHub';
@@ -51,7 +50,13 @@ import {
   ArrowDownLeft,
   Globe,
   BookOpen,
-  CalendarRange
+  CalendarRange,
+  Bell,
+  Trash2,
+  Users,
+  Phone,
+  Lightbulb,
+  ExternalLink
 } from 'lucide-react';
 // --- Safe Storage Wrapper for Iframe Compatibility ---
 const safeStorage = {
@@ -94,7 +99,7 @@ const safeStorage = {
 };
 
 // --- Types ---
-type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook' | 'cryptoEncyclopedia' | 'verseInteractiveHub';
+type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook' | 'cryptoEncyclopedia' | 'verseInteractiveHub' | 'verseCommunityHub' | 'ecosystemActivityLog' | 'ourVerseCommunity';
 
 interface Token {
   id: string;
@@ -305,13 +310,26 @@ function Particle({ x, y }: { x: number; y: number; key?: any }) {
 export default function App() {
   const { triggerAction } = useSecurity();
   const [gameState, setGameState] = useState<GameState>('home');
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsSubView, setSettingsSubView] = useState<'main' | 'download' | 'join' | 'language' | 'display' | 'about' | 'contact' | 'wallet_about'>('main');
+  const [displayMode, setDisplayMode] = useState<'light' | 'dark'>(() => {
+    return (safeStorage.getItem('displayMode') as any) || 'light';
+  });
+  const [appLanguage, setAppLanguage] = useState<'en' | 'bn'>('en');
+
+  const t = (en: string, bn: string) => {
+    return en;
+  };
 
   // Sync state transitions to anti-flooding engine
   useEffect(() => {
     triggerAction('navigation', `Route transition triggered to section: ${gameState}`);
   }, [gameState]);
 
-  const [username, setUsername] = useState<string | null>(() => safeStorage.getItem('verseUser'));
+  const [username, setUsername] = useState<string | null>(() => {
+    const saved = safeStorage.getItem('verseUser');
+    return saved || 'mdjuwelranajx127133@gmail.com';
+  });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [tempUsername, setTempUsername] = useState('');
   const [footerDescExpanded, setFooterDescExpanded] = useState<boolean>(false);
@@ -467,6 +485,161 @@ export default function App() {
   const [showFocus, setShowFocus] = useState(false);
   const [isWelcomeExpanded, setIsWelcomeExpanded] = useState(false);
   const [homeSubState, setHomeSubState] = useState<'welcome' | 'features'>('welcome');
+
+  const [isNavigatingTopic, setIsNavigatingTopic] = useState(false);
+  const [navigatingTopicName, setNavigatingTopicName] = useState('');
+  const [navigateTargetState, setNavigateTargetState] = useState<GameState>('home');
+  const [topicLoadingProgress, setTopicLoadingProgress] = useState(0);
+
+  const navigationTopics = [
+    {
+      id: 'bitcoinWallet' as GameState,
+      title: 'Bitcoin.com Wallet',
+      subtitle: 'NATIVE WALLET PORTAL',
+      desc: 'Explore non-custodial multi-chain wallet secure transactions & management.',
+      logoUrl: 'https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg',
+      colorFrom: 'from-blue-600',
+      colorTo: 'to-indigo-600',
+      tag: 'FEATURED',
+      glow: 'rgba(59, 130, 246, 0.4)'
+    },
+    {
+      id: 'cryptoHistory' as GameState,
+      title: 'Crypto Founder and History',
+      subtitle: 'BLOCKCHAIN ARCHIVE',
+      desc: 'Founders, historical dates, and pioneering discoveries.',
+      logoUrl: 'https://i.ibb.co.com/hx1FvtyV/file-00000000bc08720b9442e03fc47020a2.png',
+      colorFrom: 'from-emerald-500',
+      colorTo: 'to-teal-600',
+      tag: 'HISTORIC',
+      glow: 'rgba(16, 185, 129, 0.4)'
+    },
+    {
+      id: 'quiz' as GameState,
+      title: 'Verse Knowledge Quiz',
+      subtitle: 'CRYPTO IQ CHALLENGE',
+      desc: 'Test your blockchain knowledge and score ecosystem bonuses.',
+      logoUrl: 'https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png',
+      colorFrom: 'from-indigo-600',
+      colorTo: 'to-purple-600',
+      tag: 'BRAIN INTEL',
+      glow: 'rgba(99, 102, 241, 0.4)'
+    },
+    {
+      id: 'ecosystemBook' as GameState,
+      title: 'Verse Ecosystem book',
+      subtitle: 'DECENTRALIZATION ARCHIVE',
+      desc: 'Academic chapters on decentralized networks, nodes, and ecosystem scale.',
+      logoUrl: 'https://cdn-icons-png.flaticon.com/512/2232/2232688.png',
+      colorFrom: 'from-amber-500',
+      colorTo: 'to-amber-600',
+      tag: 'ACADEMY',
+      glow: 'rgba(245, 158, 11, 0.4)'
+    },
+    {
+      id: 'cryptoEncyclopedia' as GameState,
+      title: 'Crypto Encyclopedia',
+      subtitle: 'WIKIPEDIA DICTIONARY',
+      desc: 'Easy and detailed Web3 dictionary and essential FAQ archive.',
+      logoUrl: 'https://i.ibb.co.com/tpLLKjSG/IMG-20260603-145948.png',
+      colorFrom: 'from-cyan-400',
+      colorTo: 'to-indigo-500',
+      tag: 'ENCYCLOPEDIA',
+      glow: 'rgba(34, 211, 238, 0.4)'
+    },
+    {
+      id: 'verseInteractiveHub' as GameState,
+      title: 'VERSE INTERACTIVE HUB',
+      subtitle: 'INTERACTIVE COMMUNITY HUB',
+      desc: 'Explore real-time decentralized simulations, charts, and ecosystem growth.',
+      logoUrl: 'https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png',
+      colorFrom: 'from-purple-600',
+      colorTo: 'to-pink-600',
+      tag: 'INTERACTIVE',
+      glow: 'rgba(168, 85, 247, 0.4)'
+    },
+    {
+      id: 'ourVerseCommunity' as GameState,
+      title: 'Our Verse Community',
+      subtitle: 'COMMUNITY GATEWAY',
+      desc: 'Direct gateway to the Verse network and official collaborative community nodes.',
+      logoUrl: 'https://i.ibb.co.com/cSX4SpFC/file-00000000fdd071fa8b2edad69edccb1f.png',
+      colorFrom: 'from-yellow-400',
+      colorTo: 'to-amber-500',
+      tag: 'GATEWAY',
+      glow: 'rgba(234, 179, 8, 0.4)'
+    },
+    {
+      id: 'verseCommunityHub' as GameState,
+      title: 'Our TG Bitcoin.com Wallet Community',
+      subtitle: 'GLOBAL DECENTRALIZED COLLECTIVE',
+      desc: 'Explore and join our official global community. Access 26 detailed interactive Telegram topics!',
+      logoUrl: 'https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg',
+      colorFrom: 'from-amber-500',
+      colorTo: 'to-[#8b5e3c]',
+      tag: 'COMMUNITY',
+      glow: 'rgba(230, 130, 20, 0.4)'
+    },
+    {
+      id: 'ecosystemActivityLog' as GameState,
+      title: 'Ecosystem Activity Log',
+      subtitle: 'LIVE TELEMETRY STREAMS',
+      desc: 'Real-time transaction tracking, active validator node statuses and logs.',
+      logoUrl: 'https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png',
+      colorFrom: 'from-blue-600',
+      colorTo: 'to-teal-500',
+      tag: 'LIVE OPERATION',
+      glow: 'rgba(37, 99, 235, 0.4)'
+    },
+    {
+      id: 'home' as GameState,
+      title: 'Home Dashboard',
+      subtitle: 'OVERVIEW CENTER',
+      desc: 'Return to the master overview, daily clickers, and community portal logs.',
+      logoUrl: 'https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png',
+      colorFrom: 'from-gray-700',
+      colorTo: 'to-slate-800',
+      tag: 'DASHBOARD',
+      glow: 'rgba(100, 116, 139, 0.4)'
+    }
+  ];
+
+  const handleTopicNavigation = (targetState: GameState, topicName: string) => {
+    setNavigateTargetState(targetState);
+    setNavigatingTopicName(topicName);
+    setIsNavigatingTopic(true);
+    setTopicLoadingProgress(0);
+
+    let progressVal = 0;
+    const interval = setInterval(() => {
+      progressVal += 10;
+      setTopicLoadingProgress(Math.min(progressVal, 100));
+      if (progressVal >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsNavigatingTopic(false);
+          
+          if (targetState === 'cryptoHistory') {
+            window.location.href = 'https://crypto-founder-history.vercel.app';
+          } else if (targetState === 'cryptoEncyclopedia') {
+            window.location.href = 'https://crypto-encyclopedia.vercel.app';
+          } else if (targetState === 'verseInteractiveHub') {
+            window.location.href = 'https://verse-interactive-hub.vercel.app';
+          } else if (targetState === 'ourVerseCommunity' as GameState) {
+            window.location.href = 'https://our-verse-community.vercel.app';
+          } else if (targetState === 'bitcoinWallet') {
+            window.location.href = 'https://bitcoin-com-wallet-inspired-demo.vercel.app';
+          } else {
+            setGameState(targetState);
+            if (targetState === 'home') {
+              setHomeSubState('features');
+            }
+          }
+        }, 150);
+      }
+    }, 120);
+  };
+
   const [focusSlideIndex, setFocusSlideIndex] = useState<number>(() => {
     const saved = safeStorage.getItem('verse_focus_slide_index');
     return saved ? parseInt(saved, 10) : 0;
@@ -601,7 +774,59 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-[#c0a080] selection:text-white">
+    <div className={`min-h-screen w-full font-sans selection:bg-[#c0a080] selection:text-white flex flex-col items-center transition-colors duration-300 ${displayMode === 'dark' ? 'bg-[#121214] text-gray-100' : 'bg-white text-gray-900'}`}>
+
+      {/* PREMIUM TOPIC NAVIGATION LOADING OVERLAY WITH PALETTE (Mint Green, Aqua, Sky Blue, Royal Blue) */}
+      <AnimatePresence>
+        {isNavigatingTopic && (
+          <motion.div
+            key="topic-navigation-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10002] bg-slate-950/95 flex flex-col items-center justify-center p-6 text-white backdrop-blur-xl"
+          >
+            {/* Ambient gradients */}
+            <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
+
+            <div className="max-w-md w-full text-center space-y-6 relative z-10 px-4">
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#3cd070] font-black uppercase bg-[#3cd070]/10 px-3 py-1.5 rounded-full border border-[#3cd070]/20 animate-pulse">
+                INITIALIZING SECURE PORTAL CONSOLE
+              </span>
+              
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black tracking-tight text-white uppercase">
+                  {navigatingTopicName}
+                </h2>
+                <p className="text-xs text-slate-450 font-mono">Syncing secure blocks, datasets and visual charts...</p>
+              </div>
+
+              {/* Glowing High-Tech Double Spinner */}
+              <div className="relative w-24 h-24 mx-auto my-8">
+                <div className="absolute inset-0 border-4 border-slate-900 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-blue-600 border-r-[#3cd070] rounded-full animate-spin" style={{ animationDuration: '1.2s' }}></div>
+                <div className="absolute inset-[8px] border-4 border-t-cyan-400 border-l-teal-300 rounded-full animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }}></div>
+                <div className="absolute inset-[16px] border-2 border-t-sky-400 rounded-full animate-pulse"></div>
+              </div>
+
+              {/* High-Fidelity progress tracer */}
+              <div className="space-y-2.5 max-w-xs mx-auto">
+                <div className="h-2 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                  <div 
+                    className="h-full rounded-full bg-gradient-to-r from-[#3cd070] via-cyan-400 via-sky-400 to-blue-600 transition-all duration-150 ease-out shadow-[0_0_15px_rgba(6,182,212,0.6)]"
+                    style={{ width: `${topicLoadingProgress}%` }}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-450 font-mono font-black uppercase tracking-wider">
+                  <span className="animate-pulse">DECRYPTING PROTOCOL</span>
+                  <span className="text-white">{Math.floor(topicLoadingProgress)}%</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {isLoadingUser ? (
@@ -653,17 +878,17 @@ export default function App() {
               {loadingTips[currentTip]}
             </motion.div>
           </motion.div>
-        ) : !username ? (
+        ) : false ? (
           <motion.div
             key="username-entry"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-gradient-to-br from-[#fcfbfa] via-amber-50/45 to-[#fdfcfb] flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-white text-gray-900 font-sans flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto selection:bg-[#c0a080] selection:text-white"
           >
-            {/* Elegant glowing background ambient lights in warm amber/gold colors */}
-            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-amber-400/10 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#c0a080]/15 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
+            {/* Elegant glowing background ambient lights in warm amber/gold colors matching welcome screen theme */}
+            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-amber-400/8 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#c0a080]/12 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
 
             <AnimatePresence mode="wait">
               {isConnectingApp ? (
@@ -961,15 +1186,21 @@ export default function App() {
             key="app-content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="pt-0"
+            className="pt-0 w-full flex flex-col items-center"
           >
             {/* Navigation Header - Only shown inside gameplay/features screens, completely hidden on the welcome page */}
             {!(gameState === 'home' && homeSubState === 'welcome') && (
-              <header className="border-b border-amber-500/10 bg-white/95 mt-4 mb-2 mx-auto max-w-4xl rounded-2xl shadow-[0_2px_15px_rgba(139,94,60,0.05)]">
-                <div className="px-4 sm:px-6 py-3.5 flex items-center justify-start gap-3 w-full">
+              <header className="border-b border-amber-500/10 bg-white/95 mt-4 mb-2 mx-auto max-w-4xl w-full rounded-2xl shadow-[0_3px_20px_rgba(139,94,60,0.08)] sticky top-2 z-[99] backdrop-blur-md">
+                <div className="px-4 sm:px-6 py-3.5 flex items-center justify-between w-full relative">
                   
                   {/* Top-Left Corner Premium Logo and Brand Name side-by-side on a single line */}
                   <div className="flex items-center gap-3 min-w-0">
+                    <button
+                      onClick={() => setShowSettings(true)}
+                      className="text-[#8b5e3c] bg-amber-500/5 hover:bg-amber-500/15 active:scale-95 transition-all duration-150 px-2.5 py-1.5 rounded-xl border border-amber-500/10 font-black text-sm md:text-base select-none flex-shrink-0 cursor-pointer"
+                    >
+                      ( ☰ )
+                    </button>
                     <img
                       src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
                       alt="Bitcoin.com logo"
@@ -977,17 +1208,29 @@ export default function App() {
                       referrerPolicy="no-referrer"
                     />
                     <h1 className="text-xs sm:text-sm md:text-base font-black tracking-tight text-[#8b5e3c] uppercase leading-none select-none min-w-0 truncate">
-                      Bitcoin.com Wallet &amp; Verse community Hub
+                      Bitcoin Wallet &amp; Verse Learning Hub
                     </h1>
+                  </div>
+
+                  {/* Navigation Header Action Button */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {gameState !== 'home' && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setGameState('home')}
+                        className="relative px-4 py-2 rounded-xl border border-[#8b5e3c]/25 bg-amber-500/5 hover:bg-[#8b5e3c] text-[#8b5e3c] hover:text-white transition-all duration-200 flex items-center gap-1.5 font-mono font-black text-xs cursor-pointer select-none"
+                      >
+                        <span>🏠 BACK HOME</span>
+                      </motion.button>
+                    )}
                   </div>
 
                 </div>
               </header>
             )}
 
-            <main className="max-w-4xl mx-auto px-6 py-8">
-              {/* Centered top banner image and expandable wallet description */}
-              {(gameState === 'home' && homeSubState === 'features') && <WalletInfoCard />}
+            <main className="max-w-4xl w-full mx-auto px-6 py-8">
 
               <AnimatePresence mode="wait">
                 {gameState === 'home' && (
@@ -1005,245 +1248,144 @@ export default function App() {
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -15 }}
-                          className="w-full max-w-2xl mx-auto border border-[#8b5e3c]/25 rounded-[2.5rem] p-8 md:p-10 bg-gradient-to-br from-white via-amber-50/15 to-white shadow-2xl space-y-8 flex flex-col items-center"
+                          className="w-full max-w-3xl mx-auto flex flex-col gap-6 items-center"
                         >
-                          <section className="text-center space-y-4 w-full select-none">
-                            {/* Masked User Badge */}
-                            <div className="flex justify-center mb-4">
-                              <span className="text-[10px] font-mono tracking-widest uppercase font-black bg-amber-500/10 border border-amber-500/20 text-[#8b5e3c] px-3.5 py-1.5 rounded-full shadow-sm">
-                                Verified User: {maskEmail(username)}
-                              </span>
-                            </div>
+                          {/* Welcome greetings box (solid deep white colored) */}
+                          <section className={`text-center w-full select-none p-6 sm:p-8 rounded-3xl shadow-sm border flex flex-col items-center transition-colors duration-300 ${
+                            displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E] text-white' : 'bg-white border-slate-100 text-[#8b5e3c]'
+                          }`}>
+                            <h2 className="text-2xl sm:text-3xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25]">
+                              {t("Welcome to Verse Hub!", "ভার্স হাবে আপনাকে স্বাগতম!")}
+                            </h2>
 
-                            {/* Clickable task 8 title */}
-                            <button
-                              onClick={() => setIsWelcomeExpanded(!isWelcomeExpanded)}
-                              className="text-center w-full focus:outline-none group cursor-pointer"
-                            >
-                              <h2 className="text-2xl sm:text-3xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] hover:scale-[1.01] transition-transform duration-300">
-                                Welcome! Welcome! Welcome! Welcome! Welcome!
-                              </h2>
-                              <p className="text-[10px] text-[#bd9471] font-extrabold uppercase tracking-widest mt-2 font-mono flex items-center justify-center gap-1.5 group-hover:text-[#8b5e3c]">
-                                {isWelcomeExpanded ? '▼ Tap to collapse details' : '▲ Tap to expand details'}
-                              </p>
-                            </button>
-
-                            {/* Sliding/expandable description under Clickable Header */}
-                            <AnimatePresence initial={false}>
-                              {isWelcomeExpanded && (
-                                <motion.div
-                                  initial={{ opacity: 0, height: 0, y: -5 }}
-                                  animate={{ opacity: 1, height: 'auto', y: 0 }}
-                                  exit={{ opacity: 0, height: 0, y: -5 }}
-                                  className="overflow-hidden max-w-md mx-auto"
-                                >
-                                  <p className="text-xs sm:text-sm font-semibold text-[#8b5e3c]/85 leading-relaxed bg-[#8b5e3c]/5 border border-[#8b5e3c]/10 p-5 rounded-2xl text-left shadow-inner">
-                                    Welcome to Verse Community Hub. Here, you can explore important information about the Verse ecosystem, learn how to monitor market prices, access various analyses and reviews, and gain valuable knowledge and insights about Verse. This is an informative and educational platform for both new and experienced users, where updates, guides, and useful information are shared regularly.
-                                  </p>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Badge rows for authorization status */}
-                            <div className="flex justify-center gap-2 pt-2">
-                              {appAuthType === 'telegram' && (
-                                <div className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-600 border border-sky-200/50 rounded-full px-3 py-1.5 text-[10px] font-black tracking-wide font-mono shadow-sm">
-                                  <Send className="w-3.5 h-3.5 rotate-45 text-sky-500 animate-pulse" />
-                                  TELEGRAM ACCESS CORES
-                                </div>
-                              )}
-                              {appAuthType === 'google' && (
-                                <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200/50 rounded-full px-3 py-1.5 text-[10px] font-black tracking-wide font-mono shadow-sm">
-                                  <Globe className="w-3.5 h-3.5 text-emerald-500 animate-spin" style={{ animationDuration: '4s' }} />
-                                  SECURE SESSION GRANTED
-                                </div>
-                              )}
+                            {/* Action GET STARTED Button repositioned to the middle top area, styled beautifully */}
+                            <div className="pt-4 pb-2 w-full flex justify-center">
+                              <motion.button
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setHomeSubState('features')}
+                                className="px-14 py-5 bg-gradient-to-r from-amber-500 via-[#8b5e3c] to-amber-600 text-white font-black text-2xl rounded-2xl tracking-[0.1em] shadow-[0_12px_36px_rgba(139,94,60,0.35)] hover:shadow-[0_15px_40px_rgba(139,94,60,0.55)] cursor-pointer select-none transition-all duration-300 uppercase shrink-0 border border-amber-400/20"
+                              >
+                                {t("GET STARTED", "শুরু করুন")}
+                              </motion.button>
                             </div>
                           </section>
 
-                          {/* Community Section */}
-                          <section className="text-center space-y-6 w-full animate-fade-in animate-duration-300">
-                            <div className="space-y-4">
-                              <button 
-                                onClick={() => setShowLinks(!showLinks)}
-                                className="bg-[#8b5e3c] hover:bg-[#a67148] active:scale-95 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-[0_4px_20px_rgba(139,94,60,0.3)] uppercase tracking-wider text-sm w-full sm:w-auto cursor-pointer"
-                              >
-                                {showLinks ? 'Close Community' : 'Join Our Community'}
-                              </button>
-                              
-                              <div className="block">
-                                <button 
-                                  type="button"
-                                  onClick={() => setShowFocus(!showFocus)}
-                                  className="relative inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-600/15 to-amber-500/10 hover:from-amber-500/20 hover:to-amber-500/25 text-[#8b5e3c] font-black uppercase tracking-wider text-xs border border-amber-500/25 mt-4 transition-all duration-300 hover:shadow-md cursor-pointer text-center"
-                                >
-                                  <Sparkles className="w-4 h-4 text-[#8b5e3c] animate-pulse" />
-                                  {showFocus ? 'COLLAPSE WEBSITE FOCUS' : 'MAIN FOCUS OF THE BITCOIN.COM & VERSE COMMUNITY WEBSITE'}
-                                </button>
+                          {/* Beautiful Description Points in closed bordered rectangular containers */}
+                          <div className={`w-full rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 border transition-colors ${
+                            displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-slate-150'
+                          }`}>
+                            <div className={`flex items-center gap-2 pb-4 border-b ${
+                              displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-slate-100'
+                            }`}>
+                              <div className="w-2.5 h-6 bg-sky-500 rounded-full" />
+                              <h3 className={`text-base sm:text-lg font-black tracking-tight font-sans transition-colors ${
+                                displayMode === 'dark' ? 'text-white' : 'text-slate-800'
+                              }`}>
+                                About Our Platform & Educational Disclaimer
+                              </h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-5">
+                              {/* Point 1 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-sky-500/60' : 'bg-white border-slate-200 hover:border-sky-500/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-sky-600 font-sans tracking-tight uppercase">
+                                  (1) About this website
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  This website has been created for <span className="text-amber-700 font-bold">educational and informational</span> purposes only, so that users can easily learn and understand Bitcoin.com Wallet's various features, usage methods and cryptocurrency ecosystem. Efforts are made to keep market prices and other information displayed here as accurate as possible.
+                                </p>
+                              </div>
+
+                              {/* Point 2 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8b5e3c]/60' : 'bg-white border-slate-200 hover:border-[#8b5e3c]/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-[#8b5e3c] font-sans tracking-tight uppercase">
+                                  (2) Educational and informational platforms
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  This website is <span className="text-red-650 font-bold">not the official website or app</span> of Bitcoin.com Wallet and has no direct affiliation or endorsement with Bitcoin.com. The various features, interfaces and information displayed here are presented only for the convenience of the users, so that they can easily analyze and understand the various topics.
+                                </p>
+                                <div className={`text-[11px] font-black font-mono tracking-wider px-3 py-1.5 rounded-xl border inline-block ${
+                                  displayMode === 'dark' ? 'text-amber-400 bg-amber-950/20 border-amber-950/50' : 'text-amber-700 bg-amber-50 border-amber-500/10'
+                                }`}>
+                                  Demo ➔ Educational ➔ Guide ➔ Information Hub
+                                </div>
+                              </div>
+
+                              {/* Point 3 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-emerald-500/60' : 'bg-white border-slate-200 hover:border-emerald-500/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-emerald-700 font-sans tracking-tight uppercase">
+                                  (3) For official app usage
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  Please use the official Bitcoin.com platform to download and use the official Bitcoin.com Wallet app. This website is created for informational, educational and user awareness purposes only. The various information, instructions and topics provided here will help users to learn and understand Bitcoin.com and the <span className="text-blue-650 font-bold">VERSE Ecosystem</span> in depth.
+                                </p>
+                                <div className="pt-1.5">
+                                  <a 
+                                    href="https://wallet.bitcoin.com/" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-4.5 py-2.5 bg-[#007AFF] hover:bg-blue-600 text-white text-xs font-black rounded-xl shadow-md transition-all active:scale-95 uppercase"
+                                  >
+                                    Download here : wallet.bitcoin.com
+                                  </a>
+                                </div>
+                              </div>
+
+                              {/* Point 4 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-indigo-500/60' : 'bg-white border-slate-200 hover:border-indigo-500/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-indigo-700 font-sans tracking-tight uppercase">
+                                  (4) Learn about ecosystems
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  <span className="text-indigo-800 font-bold dark:text-indigo-300">Bitcoin.com Ecosystem, Wallet Features, Market Information</span> and other important topics are discussed in detail in various sections of this website. Through this, users can learn, understand and analyze the entire ecosystem with real-world experience.
+                                </p>
+                              </div>
+
+                              {/* Point 5 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-purple-500/60' : 'bg-white border-slate-200 hover:border-purple-500/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-purple-700 font-sans tracking-tight uppercase">
+                                  (5) VERSE AND RELATED SUBJECTS
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  Also, various topics related to <span className="text-purple-800 font-bold dark:text-purple-300">VERSE Token</span> and its various uses, utilities, community and ecosystem are discussed here. This information will help users to better know and understand the VERSE Ecosystem.
+                                </p>
+                              </div>
+
+                              {/* Point 6 */}
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-amber-600/60' : 'bg-white border-slate-200 hover:border-amber-600/40'
+                              }`}>
+                                <h4 className="text-sm sm:text-base font-black text-amber-700 font-sans tracking-tight uppercase">
+                                  (6) Especially important for new users
+                                </h4>
+                                <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
+                                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                                }`}>
+                                  This platform is <span className="text-slate-900 font-bold dark:text-white">very important for those who are new</span> to Cryptocurrency, Blockchain, Bitcoin.com Ecosystem or VERSE and don't know much about these networks and technologies. An attempt has been made here to explain various topics in simple language, so that even new users can gradually gain an understanding of the entire ecosystem.
+                                </p>
                               </div>
                             </div>
-
-                            <AnimatePresence>
-                              {showFocus && (
-                                <motion.div
-                                  initial={{ opacity: 0, scale: 0.98, y: -8 }}
-                                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.98, y: -8 }}
-                                  className="overflow-hidden bg-slate-900 border border-amber-500/30 rounded-[2.5rem] p-6 sm:p-8 max-w-2xl mx-auto shadow-2xl text-left relative mt-4 border-t-4 border-t-amber-500/40 text-gray-200"
-                                >
-                                  {/* Ambient Glow */}
-                                  <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                                  {/* Section top tracker and label */}
-                                  <div className="flex justify-between items-center border-b border-amber-500/15 pb-4 mb-6">
-                                    <div className="flex items-center gap-2">
-                                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                                      <span className="text-[10px] font-mono font-black uppercase tracking-widest text-amber-400 bg-amber-500/15 px-3 py-1 rounded-full border border-amber-500/20">
-                                        Ecosystem Objective • Slide {focusSlideIndex + 1} of {COMMUNITY_WEBSITE_SLIDES.length}
-                                      </span>
-                                    </div>
-                                    <div className="text-[11px] font-mono font-black text-amber-500/60 uppercase">
-                                      Education Deck
-                                    </div>
-                                  </div>
-
-                                  {/* Interactive Slide Animation Container */}
-                                  <AnimatePresence mode="wait">
-                                    <motion.div
-                                      key={focusSlideIndex}
-                                      initial={{ opacity: 0, x: 20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      exit={{ opacity: 0, x: -20 }}
-                                      transition={{ duration: 0.3 }}
-                                      className="space-y-4"
-                                    >
-                                      <div>
-                                        <span className="text-[9.5px] uppercase tracking-widest font-mono font-bold text-[#c0a080]">
-                                          {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].subtitle}
-                                        </span>
-                                        <h3 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-100 to-white tracking-tight mt-0.5">
-                                          {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].title}
-                                        </h3>
-                                      </div>
-
-                                      {/* Content explanation paragraph */}
-                                      <p className="text-xs sm:text-sm font-semibold text-gray-300 leading-relaxed font-sans bg-slate-950/40 p-4 rounded-2xl border border-white/5 whitespace-pre-line">
-                                        {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].content}
-                                      </p>
-
-                                      {/* "More details" interactive expander button */}
-                                      <div className="space-y-2 pt-1">
-                                        <button
-                                          type="button"
-                                          onClick={() => setShowSlideDetail(!showSlideDetail)}
-                                          className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 rounded-xl font-bold font-mono border border-amber-500/15 cursor-pointer"
-                                        >
-                                          <span>✨ {showSlideDetail ? 'Hide details' : 'More details'}</span>
-                                        </button>
-
-                                        <AnimatePresence>
-                                          {showSlideDetail && (
-                                            <motion.div
-                                              initial={{ opacity: 0, y: 5 }}
-                                              animate={{ opacity: 1, y: 0 }}
-                                              exit={{ opacity: 0, y: 5 }}
-                                              className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal bg-[#040815]/95 p-5 rounded-2xl border border-amber-500/20 shadow-inner whitespace-pre-line"
-                                            >
-                                              {COMMUNITY_WEBSITE_SLIDES[focusSlideIndex].detail}
-                                            </motion.div>
-                                          )}
-                                        </AnimatePresence>
-                                      </div>
-                                    </motion.div>
-                                  </AnimatePresence>
-
-                                  {/* Multi-step pagination dots progress bar */}
-                                  <div className="flex flex-wrap gap-1.5 justify-center items-center py-4 my-2">
-                                    {COMMUNITY_WEBSITE_SLIDES.map((_, i) => (
-                                      <button
-                                        key={i}
-                                        type="button"
-                                        onClick={() => {
-                                          setFocusSlideIndex(i);
-                                          setShowSlideDetail(false);
-                                        }}
-                                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                                          i === focusSlideIndex 
-                                            ? 'bg-amber-400 scale-125 shadow-[0_0_8px_#f59e0b]' 
-                                            : 'bg-slate-700 hover:bg-slate-500'
-                                        }`}
-                                        title={`Page ${i + 1}`}
-                                      />
-                                    ))}
-                                  </div>
-
-                                  {/* Next and Back controllers */}
-                                  <div className="flex items-center justify-between border-t border-amber-500/15 pt-5 mt-4">
-                                    <button
-                                      type="button"
-                                      disabled={focusSlideIndex === 0}
-                                      onClick={() => {
-                                        setFocusSlideIndex(prev => Math.max(0, prev - 1));
-                                        setShowSlideDetail(false);
-                                      }}
-                                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-25 bg-slate-800 hover:bg-slate-700 disabled:hover:bg-slate-800 text-amber-300 cursor-pointer"
-                                    >
-                                      <ChevronLeft className="w-4 h-4" />
-                                      Back
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      disabled={focusSlideIndex === COMMUNITY_WEBSITE_SLIDES.length - 1}
-                                      onClick={() => {
-                                        setFocusSlideIndex(prev => Math.min(COMMUNITY_WEBSITE_SLIDES.length - 1, prev + 1));
-                                        setShowSlideDetail(false);
-                                      }}
-                                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all disabled:opacity-25 bg-amber-500 hover:bg-amber-400 disabled:hover:bg-amber-500 text-slate-950 font-sans cursor-pointer shadow-md"
-                                    >
-                                      Next
-                                      <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-
-                            <AnimatePresence>
-                              {showLinks && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -10, height: 0 }}
-                                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                  exit={{ opacity: 0, y: -10, height: 0 }}
-                                  className="overflow-hidden mt-6 bg-slate-50 border border-gray-100 rounded-[2rem] p-6 max-w-md mx-auto space-y-3 shadow-lg"
-                                >
-                                  <a href="https://t.me/GetVerse" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                                    1: VERSE TELEGRAM GROUP
-                                  </a>
-                                  <a href="https://twitter.com/VerseEcosystem" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                                    2: VERSE TWITTER COMMUNITY
-                                  </a>
-                                  <a href="https://twitter.com/BitcoinCom" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                                    3: VERSE OFFICIAL TWITTER
-                                  </a>
-                                  <a href="http://dashboard.vgdh.io" target="_blank" rel="noopener noreferrer" className="block p-4 bg-white hover:bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 text-sm font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-sm">
-                                    4: VERSE APP ANALYTICS
-                                  </a>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </section>
-
-                          {/* Action GET STARTED Button */}
-                          <div className="pt-8 w-full flex justify-center">
-                            <motion.button
-                              whileHover={{ scale: 1.05, y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => setHomeSubState('features')}
-                              className="px-14 py-5 bg-gradient-to-r from-amber-500 via-[#8b5e3c] to-amber-600 text-white font-black text-2xl rounded-2xl tracking-[0.1em] shadow-[0_12px_36px_rgba(139,94,60,0.4)] hover:shadow-[0_15px_40px_rgba(139,94,60,0.6)] cursor-pointer select-none transition-all duration-300 uppercase shrink-0 border border-amber-400/20"
-                            >
-                              GET STARTED
-                            </motion.button>
                           </div>
                         </motion.div>
                       )}
@@ -1256,325 +1398,80 @@ export default function App() {
                           exit={{ opacity: 0, y: -15 }}
                           className="space-y-8"
                         >
+                          {/* TOPICS / PORTALS WEB GRID */}
+                          <div className="space-y-6 pt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                              {navigationTopics.filter(topic => topic.id !== 'home').map((topic) => {
+                                return (
+                                  <motion.button
+                                    key={topic.id}
+                                    whileHover={{ 
+                                      y: -6,
+                                      boxShadow: '0 20px 25px -5px rgba(139,94,60,0.1), 0 10px 10px -5px rgba(139,94,60,0.04)'
+                                    }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleTopicNavigation(topic.id, topic.title)}
+                                    className={`flex flex-col text-left p-6 rounded-[2rem] transition-all duration-300 group cursor-pointer relative overflow-hidden shadow-md ${
+                                      displayMode === 'dark' 
+                                        ? 'bg-[#1C1C1E] hover:bg-[#2C2C2E]/40 border border-[#2C2C2E] hover:border-[#8b5e3c]/50 shadow-black/30' 
+                                        : 'bg-white hover:bg-slate-50/50 border border-amber-500/10 hover:border-[#8b5e3c]/35 shadow-amber-900/[0.02]'
+                                    }`}
+                                  >
+                                    {/* Accent background glow based on the topic theme */}
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/5 to-[#8b5e3c]/5 rounded-full blur-2xl pointer-events-none" />
 
+                                    {/* Top Metadata Row */}
+                                    <div className="flex items-center justify-between w-full mb-5 relative z-10">
+                                      {/* Icon Container with subtle border */}
+                                      <div className={`w-12 h-12 rounded-2xl overflow-hidden border p-0.5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-all duration-300 ${
+                                        displayMode === 'dark' ? 'border-[#2C2C2E] bg-black' : 'border-amber-500/15 bg-white'
+                                      }`}>
+                                        <img
+                                          src={topic.logoUrl}
+                                          alt={topic.title}
+                                          className="w-full h-full object-cover rounded-xl"
+                                          referrerPolicy="no-referrer"
+                                        />
+                                      </div>
 
-                          {/* Bitcoin.com Wallet Featured Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('bitcoinWallet')}
-                            className="w-full flex items-center gap-5 bg-gradient-to-r from-white to-gray-50/50 border border-gray-200/80 rounded-[2rem] p-6 text-left transition-all hover:border-[#c0a080]/40 shadow-sm group cursor-pointer"
-                          >
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-md border-2 border-white flex-shrink-0 bg-white group-hover:scale-105 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg" 
-                                alt="Bitcoin.com Wallet Logo" 
-                                className="w-full h-full object-cover transition-all"
-                                referrerPolicy="no-referrer"
-                              />
-                              <div className="absolute inset-0 ring-1 ring-black/5 rounded-2xl" />
-                            </div>
-                            <h3 className="text-2xl font-black text-gray-900 tracking-tight group-hover:text-[#8b5e3c] transition-colors">
-                              Bitcoin.com Wallet
-                            </h3>
-                          </motion.button>
+                                      {/* Tag Label */}
+                                      <span className={`text-[9px] font-mono tracking-wider font-extrabold px-2.5 py-1 rounded-full border transition-colors ${
+                                        displayMode === 'dark' 
+                                          ? 'text-[#e5ba94] bg-amber-950/20 border-amber-950/40' 
+                                          : 'text-[#bd9471] bg-amber-50 border-amber-500/10'
+                                      }`}>
+                                        {topic.tag}
+                                      </span>
+                                    </div>
 
-                          {/* Crypto Founder & History Featured Option (Task 10 & 11) */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('cryptoHistory')}
-                            className="w-full flex items-center gap-5 bg-gradient-to-r from-slate-900 to-slate-950 border border-amber-500/25 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/50 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-500/15 shadow-md flex-shrink-0 bg-transparent">
-                                <img 
-                                  src="https://i.ibb.co.com/hx1FvtyV/file-00000000bc08720b9442e03fc47020a2.png" 
-                                  alt="Crypto Founder Logo" 
-                                  className="w-full h-full object-cover"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
-                              <div>
-                                <h3 className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight group-hover:text-amber-400 transition-colors">
-                                  Crypto Founder and History
-                                </h3>
-                                <p className="text-[10px] text-amber-200/95 font-black uppercase tracking-widest mt-1">Founders, dates and historical discoveries</p>
-                              </div>
-                            </div>
-                          </motion.button>
+                                    {/* Text Body */}
+                                    <div className="space-y-1.5 flex-grow relative z-10">
+                                      <span className="block text-[10px] font-mono font-bold text-[#bd9471] uppercase tracking-widest leading-none">
+                                        {topic.subtitle}
+                                      </span>
+                                      <h3 className={`text-base font-black tracking-tight group-hover:text-[#8b5e3c] transition-colors ${
+                                        displayMode === 'dark' ? 'text-white' : 'text-slate-800'
+                                      }`}>
+                                        {topic.title}
+                                      </h3>
+                                      <p className={`text-xs font-medium leading-relaxed font-sans line-clamp-3 transition-colors ${
+                                        displayMode === 'dark' ? 'text-gray-300' : 'text-slate-500'
+                                      }`}>
+                                        {topic.desc}
+                                      </p>
+                                    </div>
 
-                          {/* Claim Daily Reward Featured Option (Task 12) */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('claimReward')}
-                            className="w-full flex items-center gap-5 bg-gradient-to-r from-emerald-950/20 to-teal-950/30 border border-emerald-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-emerald-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="w-14 h-14 rounded-2xl overflow-hidden bg-emerald-500/15 flex items-center justify-center border-2 border-emerald-500/20 shadow-md flex-shrink-0">
-                              <CalendarRange className="w-7 h-7 text-emerald-400 animate-bounce" style={{ animationDuration: '3s' }} />
+                                    {/* Call to action arrow footer */}
+                                    <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-mono font-black text-[#8b5e3c] uppercase tracking-wider w-full relative z-10 ${
+                                      displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-amber-500/5'
+                                    }`}>
+                                      <span>ENTER PORTAL</span>
+                                      <span className="transform group-hover:translate-x-1 transition-transform duration-300">➜</span>
+                                    </div>
+                                  </motion.button>
+                                );
+                              })}
                             </div>
-                            <div>
-                              <h3 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight group-hover:text-emerald-300 transition-colors flex items-center gap-2">
-                                Claim daily Reward
-                                <img 
-                                  src="https://i.ibb.co.com/XxcwjvBq/Screenshot-2026-05-31-14-49-38-518-com-bitcoin-mwallet-edit.jpg" 
-                                  alt="Daily Reward" 
-                                  className="w-8 h-8 sm:w-9 sm:h-9 object-cover rounded-lg border border-emerald-500/35 shadow-md flex-shrink-0"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </h3>
-                              <p className="text-[10px] text-emerald-200/95 font-black uppercase tracking-widest mt-1">Ticking hours & direct rewards</p>
-                            </div>
-                          </motion.button>
-
-                          {/* Verse Knowledge Quiz Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('quiz')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-purple-950/20 to-indigo-950/30 border border-purple-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-purple-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-purple-500/15 flex items-center justify-center border-2 border-purple-500/20 shadow-md flex-shrink-0">
-                                <Brain className="w-7 h-7 text-purple-400 animate-pulse" />
-                              </div>
-                              <div>
-                                <h3 className="text-xl sm:text-2xl font-black text-purple-400 tracking-tight group-hover:text-purple-300 transition-colors">
-                                  Verse Knowledge Quiz
-                                </h3>
-                                <p className="text-[10px] text-purple-200/95 font-black uppercase tracking-widest mt-1">Test your crypto IQ and earn massive bonuses</p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-purple-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                alt="Verse Logo" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {/* Verse Wallet Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('wallet')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#0a233b]/40 to-[#050b1a]/50 border border-teal-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-teal-500/45 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-teal-500/15 flex items-center justify-center border-2 border-teal-500/20 shadow-md flex-shrink-0">
-                                <WalletCards className="w-7 h-7 text-teal-400 animate-pulse" />
-                              </div>
-                              <div>
-                                <h3 className="text-xl sm:text-2xl font-black text-teal-400 tracking-tight group-hover:text-teal-300 transition-colors">
-                                  Verse Wallet
-                                </h3>
-                                <p className="text-[10px] text-teal-200/95 font-black uppercase tracking-widest mt-1">Securely manage and transfer your earned assets</p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                alt="Verse Logo" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {/* Verse Ecosystem Book Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('ecosystemBook')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#171426]/50 to-[#060410]/50 border border-amber-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-amber-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-amber-500/15 flex items-center justify-center border-2 border-amber-500/20 shadow-md flex-shrink-0">
-                                <BookOpen className="w-7 h-7 text-amber-500 animate-pulse" />
-                              </div>
-                              <div>
-                                <h3 className="text-xl sm:text-2xl font-black text-amber-500 tracking-tight group-hover:text-amber-400 transition-colors flex items-center gap-2">
-                                  Verse Ecosystem book
-                                  <span className="text-[9px] font-mono bg-amber-500/10 text-amber-500 border border-amber-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">STUDY &amp; EARN</span>
-                                </h3>
-                                <p className="text-[10px] text-amber-200/95 font-black uppercase tracking-widest mt-1">Decentralization knowledge center &amp; academy chapters</p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-amber-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/ffh6gC0t/file-00000000a9def082ef73e720ba3b610d.png" 
-                                alt="Ecosystem Book Logo" 
-                                className="w-full h-full object-cover rounded-xl animate-pulse"
-                                style={{ animationDuration: '4s' }}
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {/* Crypto Encyclopedia Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(6,182,212,0.15)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('cryptoEncyclopedia')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#031b34]/60 to-[#0c0d1e]/50 border border-cyan-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-cyan-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-cyan-500/10 flex items-center justify-center border-2 border-cyan-500/30 shadow-md flex-shrink-0">
-                                <img 
-                                  src="https://i.ibb.co.com/tpLLKjSG/IMG-20260603-145948.png" 
-                                  alt="Crypto Encyclopedia Logo Left" 
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-cyan-350 transition-colors flex items-center gap-2 flex-wrap">
-                                  <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-indigo-400 bg-clip-text text-transparent">
-                                    Crypto Encyclopedia
-                                  </span>
-                                  <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">WIKIPEDIA</span>
-                                </h3>
-                                <p className="text-[10px] text-cyan-200/90 font-black uppercase tracking-widest mt-1 truncate">
-                                  টার্মসের সহজ বাংলা অভিধান • Web3 Knowledge Archive
-                                </p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-cyan-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/tpLLKjSG/IMG-20260603-145948.png" 
-                                alt="Crypto Encyclopedia Logo Right" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {/* Verse Interactive Hub Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(99,102,241,0.15)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => setGameState('verseInteractiveHub')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#0a0f2c]/60 to-[#050616]/50 border border-indigo-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-indigo-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-indigo-500/10 flex items-center justify-center border-2 border-indigo-500/35 shadow-md flex-shrink-0">
-                                <img 
-                                  src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                  alt="Verse Interactive Hub Logo Left" 
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-indigo-350 transition-colors flex items-center gap-2 flex-wrap">
-                                  <span className="bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-450 bg-clip-text text-transparent">
-                                    VERSE INTERACTIVE HUB
-                                  </span>
-                                  <span className="text-[9px] font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">HUB PORTAL</span>
-                                </h3>
-                                <p className="text-[10px] text-indigo-200/90 font-black uppercase tracking-widest mt-1 truncate">
-                                  A world-class Educational Knowledge Platform
-                                </p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                alt="Verse Interactive Hub Logo Right" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {/* Our Verse Community Option */}
-                          <motion.button
-                            whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 30px -10px rgba(20,184,166,0.15)' }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => window.open('https://our-verse-community.vercel.app', '_blank', 'noopener,noreferrer')}
-                            className="w-full flex items-center justify-between gap-5 bg-gradient-to-r from-[#011c21]/60 to-[#020a10]/50 border border-teal-500/20 rounded-[2rem] p-6 text-left transition-all hover:border-teal-500/40 shadow-xl group cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
-                              <div className="w-14 h-14 rounded-2xl overflow-hidden bg-teal-500/10 flex items-center justify-center border-2 border-teal-500/35 shadow-md flex-shrink-0">
-                                <img 
-                                  src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                  alt="Our Verse Community Logo Left" 
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  referrerPolicy="no-referrer"
-                                />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h3 className="text-xl sm:text-2xl font-black tracking-tight group-hover:text-teal-350 transition-colors flex items-center gap-2 flex-wrap">
-                                  <span className="bg-gradient-to-r from-teal-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
-                                    OUR VERSE COMMUNITY
-                                  </span>
-                                  <span className="text-[9px] font-mono bg-teal-500/10 text-teal-400 border border-teal-500/30 px-1.5 py-0.5 rounded uppercase font-black shrink-0">COMMUNITY</span>
-                                </h3>
-                                <p className="text-[10px] text-teal-200/90 font-black uppercase tracking-widest mt-1 truncate">
-                                  Join our global decentralized educational collective
-                                </p>
-                              </div>
-                            </div>
-                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden shadow-2xl border border-teal-500/30 p-0.5 bg-slate-900 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              <img 
-                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                                alt="Our Verse Community Logo Right" 
-                                className="w-full h-full object-cover rounded-xl"
-                                referrerPolicy="no-referrer"
-                              />
-                            </div>
-                          </motion.button>
-
-                          {coins > 0 && (
-                            <motion.div 
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 animate-pulse-subtle"
-                            >
-                              <div className="flex items-center gap-4 text-center sm:text-left">
-                                <div className="p-3 bg-yellow-500/20 rounded-full">
-                                  <TrendingUp className="w-6 h-6 text-yellow-500" />
-                                </div>
-                                <div>
-                                  <p className="text-yellow-500 font-bold">Unclaimed Assets</p>
-                                  <p className="text-sm text-gray-400">You have {coins} Verse waiting for you in the website balance.</p>
-                                </div>
-                              </div>
-                              <button 
-                                onClick={transferToWallet}
-                                className="w-full sm:w-auto px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                              >
-                                Transfer to Wallet
-                                <ArrowLeft className="w-4 h-4 rotate-180" />
-                              </button>
-                            </motion.div>
-                          )}
-
-                          <TelegramCommunityHub />
-
-                          {/* Elegant Premium Bottom Session Controller */}
-                          <div className="flex flex-col items-center gap-3.5 pt-8 pb-4 border-t border-amber-500/10 text-center">
-                            <div className="inline-flex items-center gap-2 bg-amber-500/5 px-4 py-2 rounded-full border border-amber-500/10">
-                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                              <span className="text-xs text-[#8b5e3c] font-mono tracking-wider font-extrabold">
-                                Active Security Session: {maskEmail(username)} • Balance: <span className="text-[#bd9471]">{coins} PTS</span>
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                safeStorage.removeItem('verseUser');
-                                safeStorage.removeItem('verse_game_state');
-                                safeStorage.removeItem('verse_home_sub_state');
-                                safeStorage.removeItem('verse_app_authtype');
-                                window.location.reload();
-                              }}
-                              className="text-xs bg-red-500/15 hover:bg-red-500 text-red-550 hover:text-white px-6 py-2.5 rounded-2xl transition-all font-mono font-black border border-red-500/20 cursor-pointer shadow-sm"
-                            >
-                              LOGOUT SECURITY SESSION
-                            </button>
                           </div>
                         </motion.div>
                       )}
@@ -1600,40 +1497,17 @@ export default function App() {
             />
           )}
 
-          {gameState === 'wallet' && (
-            <WalletSimulator 
-              balance={walletBalance}
-              tokenBalances={tokenBalances}
-              marketData={marketData}
-              lastSync={lastMarketSync}
-              lastSave={lastSaveTime}
-              history={history}
-              onBack={() => setGameState('home')}
-              setWalletBalance={setWalletBalance}
-              setTokenBalances={setTokenBalances}
-              setHistory={setHistory}
-              addTransaction={addTransaction}
-            />
-          )}
-
           {gameState === 'bitcoinWallet' && (
-            <BitcoinWalletDashboard onBack={() => setGameState('home')} />
-          )}
-
-          {gameState === 'cryptoHistory' && (
-            <CryptoHistory onBack={() => setGameState('home')} />
-          )}
-
-          {gameState === 'claimReward' && (
-            <ClaimReward 
-              onBack={() => setGameState('home')} 
-              username={username || 'anonymous'}
-              walletBalance={walletBalance}
-              onClaimSuccess={(amount) => {
-                setWalletBalance(prev => prev + amount);
-                addTransaction('receive', amount, 'Daily Reward Check-in Claim matured');
-              }}
-            />
+            <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-4">
+              <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-slate-600 font-bold font-sans">Redirecting to Bitcoin.com Wallet Demo...</p>
+              <button 
+                onClick={() => setGameState('home')} 
+                className="mt-4 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#8b5e3c] font-black rounded-xl text-xs uppercase"
+              >
+                Back to Dashboard
+              </button>
+            </div>
           )}
 
           {gameState === 'ecosystemBook' && (
@@ -1643,14 +1517,23 @@ export default function App() {
             />
           )}
 
-          {gameState === 'cryptoEncyclopedia' && (
-            <CryptoEncyclopedia 
-              onBack={() => setGameState('home')} 
-            />
+          {gameState === 'verseCommunityHub' && (
+            <div className="space-y-8 animate-fade-in">
+              <div className="w-full flex justify-between items-center bg-white border border-gray-100 p-4 rounded-2xl shadow-sm">
+                <button 
+                  onClick={() => setGameState('home')} 
+                  className="p-2.5 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-2 text-[#8b5e3c] font-black uppercase text-xs tracking-wider cursor-pointer border border-transparent hover:border-gray-100"
+                >
+                  <ArrowLeft className="w-5 h-5" /> Back Home
+                </button>
+                <span className="font-mono text-xs uppercase tracking-widest text-[#8b5e3c] font-black">Telegram Portal Connect</span>
+              </div>
+              <TelegramCommunityHub />
+            </div>
           )}
 
-          {gameState === 'verseInteractiveHub' && (
-            <VerseInteractiveHub 
+          {gameState === 'ecosystemActivityLog' && (
+            <EcosystemActivityLog 
               onBack={() => setGameState('home')} 
             />
           )}
@@ -1661,9 +1544,6 @@ export default function App() {
 
       {(gameState === 'home' && homeSubState === 'features') && (
         <>
-          {/* Bottom Images Gallery System (26 SNAPSHOTS) */}
-          <BottomGallery />
-
           {/* LARGE CENTERED BOTTOM LOGO */}
           <div className="flex flex-col items-center justify-center py-10 pb-8 text-center w-full relative z-10 select-none">
             <motion.div
@@ -1683,13 +1563,17 @@ export default function App() {
 
           {/* EDUCATIONAL FOOTER SUMMARY CARD WITH ENGLISH/BENGALI TRANSLATION */}
           <div className="max-w-4xl mx-auto px-6 mb-16 relative z-10">
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-xl relative overflow-hidden transition-all hover:shadow-2xl">
+            <div className={`border rounded-[2.5rem] p-8 sm:p-10 shadow-xl relative overflow-hidden transition-all hover:shadow-2xl ${
+              displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-gray-100'
+            }`}>
               {/* Background gradient embellishment */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/5 to-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
               
               <div className="relative z-10 space-y-6">
                 {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-50 pb-6">
+                <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6 ${
+                  displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-gray-50'
+                }`}>
                   <div>
                     <h3 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-teal-600 via-emerald-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-tight">
                       {footerDescLang === 'en' ? 'What can you learn from our website?' : 'আমাদের ওয়েবসাইট থেকে আপনি কী কী শিখতে পারবেন?'}
@@ -1700,13 +1584,15 @@ export default function App() {
                   </div>
                   
                   {/* Language Switcher Toggle */}
-                  <div className="flex items-center gap-1.5 self-start sm:self-auto bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                  <div className={`flex items-center gap-1.5 self-start sm:self-auto p-1.5 rounded-2xl border ${
+                    displayMode === 'dark' ? 'bg-black/60 border-[#2C2C2E]' : 'bg-slate-50 border-slate-100'
+                  }`}>
                     <button
                       onClick={() => setFooterDescLang('en')}
                       className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         footerDescLang === 'en'
-                          ? 'bg-white text-teal-600 shadow-sm border border-gray-100'
-                          : 'text-slate-500 hover:text-slate-900'
+                          ? (displayMode === 'dark' ? 'bg-[#2C2C2E] text-[#007AFF] shadow-sm border border-[#2C2C2E]' : 'bg-white text-teal-600 shadow-sm border border-gray-100')
+                          : (displayMode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')
                       }`}
                     >
                       🇬🇧 English
@@ -1715,8 +1601,8 @@ export default function App() {
                       onClick={() => setFooterDescLang('bn')}
                       className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         footerDescLang === 'bn'
-                          ? 'bg-white text-teal-600 shadow-sm border border-gray-100'
-                          : 'text-slate-500 hover:text-slate-900'
+                          ? (displayMode === 'dark' ? 'bg-[#2C2C2E] text-[#007AFF] shadow-sm border border-[#2C2C2E]' : 'bg-white text-teal-600 shadow-sm border border-gray-100')
+                          : (displayMode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')
                       }`}
                     >
                       🇧🇩 বাংলা
@@ -1725,7 +1611,9 @@ export default function App() {
                 </div>
 
                 {/* Spaced Out Text Content ("একটু ফাঁকা ফাঁকা করে লেখবা") */}
-                <div className="text-sm sm:text-base text-slate-600 leading-relaxed space-y-6 font-medium transition-all duration-300">
+                <div className={`text-sm sm:text-base leading-relaxed space-y-6 font-medium transition-all duration-300 ${
+                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-600'
+                }`}>
                   {!footerDescExpanded ? (
                     // Show first paragraph as summary
                     <p className="first-letter:text-3xl first-letter:font-black first-letter:text-teal-600 first-letter:mr-2 first-letter:float-left">
@@ -1740,9 +1628,11 @@ export default function App() {
                         const listTitle = lines[0];
                         const bullets = lines.slice(1);
                         return (
-                          <div key={pIdx} className="space-y-3 bg-teal-50/20 border border-teal-500/5 p-6 rounded-2xl my-4">
-                            <p className="font-bold text-slate-800">{listTitle}</p>
-                            <ul className="space-y-2 pl-4 sm:pl-6 text-slate-600">
+                          <div key={pIdx} className={`space-y-3 p-6 rounded-2xl my-4 border ${
+                            displayMode === 'dark' ? 'bg-teal-950/15 border-teal-500/20 text-gray-300' : 'bg-teal-50/20 border-teal-500/5 text-slate-600'
+                          }`}>
+                            <p className={`font-bold ${displayMode === 'dark' ? 'text-teal-400' : 'text-slate-800'}`}>{listTitle}</p>
+                            <ul className={`space-y-2 pl-4 sm:pl-6 ${displayMode === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>
                               {bullets.map((b, bIdx) => (
                                 <li key={bIdx} className="flex items-start gap-2 text-sm sm:text-base">
                                   <span className="text-teal-500 font-bold mt-0.5">•</span>
@@ -1792,6 +1682,912 @@ export default function App() {
           </footer>
         </>
       )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* FULL DISPLAY OVERLAY PAGE FOR SETTINGS */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            key="ios-style-settings-view"
+            initial={{ opacity: 0, scale: 0.98, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 12 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+            className={`fixed inset-0 z-[10001] flex flex-col font-sans select-none overflow-y-auto transition-colors duration-300 ${
+              displayMode === 'dark' ? 'bg-[#000000] text-white' : 'bg-[#F2F2F7] text-black'
+            }`}
+          >
+            {/* Header Area styled like iOS Settings */}
+            <div className={`w-full border-b px-4 py-3.5 flex items-center justify-between sticky top-0 z-10 flex-shrink-0 transition-colors duration-300 ${
+              displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]/85' : 'bg-white border-gray-200/80'
+            }`}>
+              <button
+                onClick={() => {
+                  if (settingsSubView !== 'main') {
+                    setSettingsSubView('main');
+                  } else {
+                    setShowSettings(false);
+                  }
+                }}
+                className="flex items-center gap-1.5 text-[#007AFF] hover:opacity-75 transition-all text-[17px] font-medium cursor-pointer active:scale-95"
+              >
+                <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+                <span>{t("Back", "পিছনে")}</span>
+              </button>
+              
+              <h2 className={`text-[17px] font-bold absolute left-1/2 -translate-x-1/2 transition-colors duration-300 ${
+                displayMode === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                {settingsSubView === 'main' && t("Settings", "সেটিংস")}
+                {settingsSubView === 'download' && t("Download Wallet", "ওয়ালেট ডাউনলোড")}
+                {settingsSubView === 'join' && t("Join Verse", "ভার্স কম্যুনিটি")}
+                {settingsSubView === 'language' && t("Language", "ভাষা")}
+                {settingsSubView === 'display' && t("Display", "প্রদর্শন")}
+                {settingsSubView === 'about' && t("About Community", "কমিউনিটি সম্পর্কে")}
+                {settingsSubView === 'contact' && t("Contact", "যোগাযোগ")}
+                {settingsSubView === 'wallet_about' && t("About Wallet", "ওয়ালেট সম্পর্কে")}
+              </h2>
+
+              {/* Empty placeholder on the right to keep center-aligned title balanced */}
+              <div className="w-16" />
+            </div>
+
+            {/* MAIN LIST BODY AREA */}
+            <div className="max-w-xl w-full mx-auto px-4 py-6 space-y-6 flex-1">
+              
+              {/* SUBVIEW 1: MAIN MENU */}
+              {settingsSubView === 'main' && (
+                <div className="space-y-6">
+                  {/* GROUP 1 */}
+                  <div className={`rounded-[14px] border overflow-hidden shadow-sm transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]/80' : 'bg-white border-gray-200/60'
+                  }`}>
+                    
+                    {/* Row 1: Download bitcoin.com wallet */}
+                    <div 
+                      onClick={() => setSettingsSubView('download')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#007AFF] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Download className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("Download bitcoin.com wallet", "bitcoin.com ওয়ালেট ডাউনলোড করুন")}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                    {/* Row 2: Join Verse Community */}
+                    <div 
+                      onClick={() => setSettingsSubView('join')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#5856D6] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Users className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("Join Verse Community", "ভার্স কমিউনিটিতে যোগ দিন")}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                    {/* Row 3: Language */}
+                    <div 
+                      onClick={() => setSettingsSubView('language')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#30B0C7] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Globe className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("Language", "ভাষা")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[14px] text-gray-400 font-medium">
+                          {appLanguage === 'bn' ? 'বাংলা' : 'English'}
+                        </span>
+                        <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                      </div>
+                    </div>
+
+                    {/* Row 4: Display */}
+                    <div 
+                      onClick={() => setSettingsSubView('display')}
+                      className={`px-4 py-3.5 flex items-center justify-between transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#FF9500] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Lightbulb className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("Display", "প্রদর্শন")}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[14px] text-gray-400 font-medium capitalize">
+                          {t(displayMode, displayMode === 'dark' ? 'ডার্ক মোড' : 'লাইট মোড')}
+                        </span>
+                        <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* GROUP 2 */}
+                  <div className={`rounded-[14px] border overflow-hidden shadow-sm transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]/80' : 'bg-white border-gray-200/60'
+                  }`}>
+                    
+                    {/* Row 5: About Verse Community */}
+                    <div 
+                      onClick={() => setSettingsSubView('about')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#AF52DE] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Users className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("About Verse Community", "ভার্স কমিউনিটি সম্পর্কে")}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                    {/* Row 6: Contact */}
+                    <div 
+                      onClick={() => setSettingsSubView('contact')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#34C759] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                          <Phone className="w-4.5 h-4.5 stroke-[2.5]" />
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("Contact", "যোগাযোগ")}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                    {/* Row 7: About the Bitcoin.com Wallet */}
+                    <div 
+                      onClick={() => setSettingsSubView('wallet_about')}
+                      className={`px-4 py-3.5 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/50 hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'border-gray-105 hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-[#FF3B30] rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm font-bold text-base leading-none">
+                          ₿
+                        </div>
+                        <span className={`text-[17px] font-normal transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-gray-900'
+                        }`}>
+                          {t("About the Bitcoin.com Wallet", "Bitcoin.com ওয়ালেট সম্পর্কে")}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                    {/* Row 8: About My Website */}
+                    <div 
+                      onClick={() => setSettingsSubView('about_my_website')}
+                      className={`px-4 py-3.5 flex items-center justify-between transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'hover:bg-[#2C2C2E]/50 active:bg-[#2C2C2E]' 
+                          : 'hover:bg-slate-50 active:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7.5 h-7.5 bg-sky-500 rounded-lg flex items-center justify-center text-white flex-shrink-0 shadow-sm font-bold text-sm leading-none">
+                          ℹ️
+                        </div>
+                        <span className={`text-[17px] font-bold transition-colors duration-300 ${
+                          displayMode === 'dark' ? 'text-gray-200' : 'text-slate-800'
+                        }`}>
+                          About My Website
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-5 h-5 ${displayMode === 'dark' ? 'text-[#48484A]' : 'text-[#C7C7CC]'}`} />
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 2: DOWNLOAD WALLET SECTION */}
+              {settingsSubView === 'download' && (
+                <div className="space-y-6">
+                  <div className={`p-5 rounded-[18px] border text-center transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-gray-200'
+                  }`}>
+                    <h3 className={`text-lg font-bold mb-4 ${displayMode === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                      {t("Bitcoin.com Wallet Features", "Bitcoin.com ওয়ালেট অপশন")}
+                    </h3>
+
+                    {/* Option 1: Direct Download */}
+                    <a 
+                      href="https://wallet.bitcoin.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-600 to-[#007AFF] text-white hover:opacity-90 active:scale-[0.99] transition-all font-bold shadow-md cursor-pointer mb-3"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Download className="w-5 h-5 stroke-[2.5]" />
+                        <span>{t("Download Link Here", "ডাউনলোড লিংক এখানে (wallet.bitcoin.com)")}</span>
+                      </div>
+                      <ExternalLink className="w-4.5 h-4.5" />
+                    </a>
+
+                    {/* Option 2: Expandable Preview Drawer */}
+                    <button 
+                      onClick={() => setSettingsSubView('wallet_about')}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl border font-bold transition-all active:scale-[0.99] mb-4 cursor-pointer ${
+                        displayMode === 'dark'
+                          ? 'border-[#2C2C2E] bg-slate-900 text-gray-200 hover:bg-[#2C2C2E]'
+                          : 'border-slate-205 bg-slate-50 text-slate-800 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Info className="w-5 h-5 text-indigo-500" />
+                        <span>{t("Legal & Wallet Terms", "শর্তাবলী ও অন্যান্য")}</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </button>
+                    
+                    {/* Header for features list */}
+                    <div className="border-t border-dashed border-gray-300/40 pt-4 mt-2 text-left">
+                      <span className="text-xs font-mono font-bold tracking-widest text-[#007AFF] uppercase block mb-3">
+                        🛡️ {t("SECURE WALLET FEATURES & PREVIEW", "ওয়ালেট বৈশিষ্ট্য ও রিভিউ")}
+                      </span>
+                      
+                      <div className="space-y-4 text-left">
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🛡️</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Self-Custodial & Secure</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Only you control your crypto. No middlemen, no compromise on security protocols.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🌐</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Multi-Chain Ready</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Manage Bitcoin, Ethereum, Polygon, BNB Smart Chain, Avalanche, and more—all in one app.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🪙</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Buy, Sell, Swap</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Seamless crypto purchases, safe asset sales, and instant token swaps with leading world-wide providers.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🎯</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Rewards Center</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Get free crypto for doing simple daily interactive tasks like reading verified news or analyzing active token prices.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🧠</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Learn & Earn</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Built-in crypto newsfeed and Learning Center designed to level up your decentralized finance knowledge.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">💸</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Cashback & Bonuses</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Earn VERSE reward loyalty assets and other ecosystem bonus tokens just by actively utilising the application.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🏪</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Merchant Payments</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">
+                              Pay with crypto at real-world establishments. Navigate through the official <a href="https://maps.bitcoin.com/" target="_blank" rel="noopener noreferrer" className="text-[#007AFF] hover:underline font-bold inline-flex items-center gap-0.5">maps.bitcoin.com <ExternalLink className="w-3 h-3" /></a> portal to easily find local fUSD-accepting merchants.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🔔</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Price Alerts & Notifications</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Stay ahead of major trade block patterns with real-time push alerts on your custom watched assets.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">👥</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Invite & Earn</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">Get rewarded and credited for bringing your peer friends safely into non-custodial crypto trading.</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 items-start">
+                          <span className="text-lg flex-shrink-0 mt-0.5">🚀</span>
+                          <div>
+                            <h4 className={`text-sm font-extrabold ${displayMode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Fast, Free Setup</h4>
+                            <p className="text-xs text-gray-400 leading-relaxed">No static sign-ups required. Simply download, generate secure keys, and explore decentralized systems instantly.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Special Download Link Trigger */}
+                      <div className="pt-6 text-center">
+                        <a 
+                          href="https://wallet.bitcoin.com/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-[#007AFF] hover:bg-blue-600 active:scale-95 transition-all rounded-full text-white text-xs font-black uppercase tracking-wider"
+                        >
+                          <span>🔗 Download Here 🔗</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 3: JOIN VERSE COMMUNITY */}
+              {settingsSubView === 'join' && (
+                <div className="space-y-5">
+                  <div className={`p-4 rounded-[18px] border text-center transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] text-white border-[#2C2C2E]' : 'bg-white text-slate-900 border-gray-200'
+                  }`}>
+                    <p className="text-sm font-medium text-gray-400 mb-6 font-sans">
+                      {t(
+                        "Connect globally with millions of Verse users. Tap any link below to instantly enter our community portal.",
+                        "ভার্স ব্যবহারকারীদের সাথে বিশ্বব্যাপী যুক্ত হোন। সরাসরি যোগাযোগ করতে নিচের যেকোনো লিংকে ক্লিক করুন।"
+                      )}
+                    </p>
+
+                    <div className="space-y-3.5">
+                      {/* Link 1: Verse Telegram */}
+                      <a 
+                        href="https://t.me/GetVerse" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border font-bold transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-[#29b6f6]/10 text-[#29b6f6] border-[#29b6f6]/20 hover:bg-[#29b6f6]/15' 
+                            : 'bg-[#e3f2fd] text-[#1976d2] border-[#29afef]/20 hover:bg-[#d0e8fc]'
+                        }`}
+                      >
+                        <span className="text-[16px]">💬 Verse Telegram Community</span>
+                        <ExternalLink className="w-4.5 h-4.5" />
+                      </a>
+
+                      {/* Link 2: Verse Twitter */}
+                      <a 
+                        href="https://twitter.com/VerseEcosystem" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border font-bold transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-white/5 text-gray-200 border-white/10 hover:bg-white/10' 
+                            : 'bg-slate-50 text-slate-800 border-slate-205 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-[16px]">🐦 Verse Twitter Community</span>
+                        <ExternalLink className="w-4.5 h-4.5" />
+                      </a>
+
+                      {/* Link 3: Bitcoin Official Community */}
+                      <a 
+                        href="https://twitter.com/BitcoinCom" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border font-bold transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/15' 
+                            : 'bg-amber-50 text-amber-850 border-amber-205 hover:bg-amber-100'
+                        }`}
+                      >
+                        <span className="text-[16px]">🪙 Bitcoin Official Community</span>
+                        <ExternalLink className="w-4.5 h-4.5" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 4: LANGUAGE SETTINGS */}
+              {settingsSubView === 'language' && (
+                <div className="space-y-4">
+                  <div className={`rounded-[14px] border overflow-hidden shadow-sm transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-gray-200'
+                  }`}>
+                    {/* Option English */}
+                    <div 
+                      onClick={() => {
+                        setAppLanguage('en');
+                        setFooterDescLang('en');
+                        safeStorage.setItem('appLanguage', 'en');
+                      }}
+                      className={`px-4 py-4 flex items-center justify-between transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'hover:bg-slate-800/40' 
+                          : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="text-[17px] font-bold text-[#007AFF]">
+                        English (US)
+                      </span>
+                      <Check className="w-5 h-5 text-[#007AFF] stroke-[3]" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 px-2">
+                    {t(
+                      "Choosing a language will automatically translate the entire layout, welcome modules, system interfaces, and setting categories into your selected dialect.",
+                      "একটি ভাষা নির্বাচন করলে সেটিংস এবং ওয়েবসাইটের প্রথম থেকে শুরু করে সমস্ত ইন্টারফেস স্বয়ংক্রিয়ভাবে অনুবাদ হয়ে যাবে।"
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* SUBVIEW 5: DISPLAY / THEMING */}
+              {settingsSubView === 'display' && (
+                <div className="space-y-4">
+                  <div className={`rounded-[14px] border overflow-hidden shadow-sm transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-gray-200'
+                  }`}>
+                    {/* Option Light Mode */}
+                    <div 
+                      onClick={() => {
+                        setDisplayMode('light');
+                        safeStorage.setItem('displayMode', 'light');
+                      }}
+                      className={`px-4 py-4 flex items-center justify-between border-b transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'border-[#2C2C2E]/60 hover:bg-slate-800/40' 
+                          : 'border-gray-100 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold text-xs">
+                          ☀
+                        </div>
+                        <span className={`text-[17px] font-medium ${displayMode === 'light' ? 'text-[#007AFF] font-bold' : ''}`}>
+                          Light Mode
+                        </span>
+                      </div>
+                      {displayMode === 'light' && <Check className="w-5 h-5 text-[#007AFF] stroke-[3]" />}
+                    </div>
+
+                    {/* Option Dark Mode */}
+                    <div 
+                      onClick={() => {
+                        setDisplayMode('dark');
+                        safeStorage.setItem('displayMode', 'dark');
+                      }}
+                      className={`px-4 py-4 flex items-center justify-between transition-all cursor-pointer ${
+                        displayMode === 'dark' 
+                          ? 'hover:bg-slate-800/40' 
+                          : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-indigo-900 flex items-center justify-center text-white font-bold text-xs">
+                          ☾
+                        </div>
+                        <span className={`text-[17px] font-medium ${displayMode === 'dark' ? 'text-[#007AFF] font-bold' : ''}`}>
+                          Dark Mode
+                        </span>
+                      </div>
+                      {displayMode === 'dark' && <Check className="w-5 h-5 text-[#007AFF] stroke-[3]" />}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 6: ABOUT VERSE COMMUNITY (Translated to English, formatted elegantly with Mint Green/Turquoise/Aqua themes) */}
+              {settingsSubView === 'about' && (
+                <div className="space-y-6">
+                  <div className="rounded-[24px] overflow-hidden border border-emerald-500/20 shadow-2xl bg-gradient-to-br from-[#0bd8b4]/90 via-[#00a896] to-[#028090] text-white p-6 md:p-8 relative">
+                    {/* Ambient light overlay */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-teal-300/20 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="relative z-10 space-y-6">
+                      <div className="flex items-center gap-3 pb-3 border-b border-white/20">
+                        <div className="p-2.5 bg-white/20 rounded-xl">
+                          <Users className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black tracking-tight text-white font-sans uppercase">
+                            About Verse Community
+                          </h3>
+                          <span className="text-[10px] uppercase font-mono tracking-wider text-emerald-100 block">
+                            Our Global Vision, Learning Ecosystem & Network
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-5 text-sm md:text-base leading-relaxed font-sans text-emerald-50 font-normal">
+                        <p>
+                          The Verse Community is an open and collaborative platform where opportunities are created to learn about, discover, and support one another in cryptocurrency, Bitcoin, Web3, and the Verse Ecosystem. Our goal is not merely to distribute information, but to cultivate an environment where both newcomer and veteran members alike can expand their knowledge and move forward with absolute confidence in this rapidly evolving tech landscape.
+                        </p>
+                        
+                        <p>
+                          Interest in crypto and blockchain technologies is growing exponentially today. Yet, many new users encounter friction trying to decipher complex, technical vocabulary. The Verse Community works deliberately to simplify these challenges. We strive to break down intricate concepts into clear, accessible language, empowering everyone to learn step-by-step and steadily refine their skills.
+                        </p>
+
+                        <p>
+                          One of our most fundamental missions is supporting our community members with high-value educational content and real-world practical use cases. Here, we share a rich variety of guides, blueprints, tutorials, analytical coverage, and functional insights that deepen existing knowledge while introducing new concepts. We firmly believe that standard resources combined with consistent learning are what shape smarter, more resilient, and highly confident crypto users.
+                        </p>
+
+                        <p>
+                          Another defining characteristic of the Verse Community is active member participation. We seek to foster an open space where every member feels welcome to share their native insights, ask questions, and assist fellow peers. A robust, thriving community is built collectively through knowledge sharing and hands-on cooperation, and we dedicate ourselves daily to that core vision.
+                        </p>
+
+                        <p>
+                          We host and organize diverse educational campaigns, interactive discussion panels, and exclusive events. Through these collaborative actions, members quickly spot brand new opportunities, showcase their unique skills, and form valuable connections with peers. By engaging regularly, members do not just consume data; they actively weave themselves into a supportive, living network of Web3 advocates.
+                        </p>
+
+                        <p>
+                          Functional updates, deep analyses, and instructive blueprints focusing on the Verse Ecosystem form the cornerstone of our resources. We are fully committed to publishing content that demystifies decentralized protocols and genuinely enriches each member&#39;s personal learning journey.
+                        </p>
+
+                        <p>
+                          The Verse Community operates on the belief that learning never truly ends. Because decentralized technology is in a state of constant upgrade, presenting fresh innovations and unique use cases daily, we invite our members to stay endlessly curious. Ask bold questions, master new tools, and pass your wisdom along. A community achieves true resilience when we learn as one, rise as one, and constantly support each other.
+                        </p>
+
+                        <p>
+                          We aspire to co-create a future where shared knowledge, cross-border cooperation, and innovative Web3 solutions act as our compass. The Verse Community represents the vessel for that journey—where every single member carries weight, every inquiry is highly valued, and every masterclass opens up pathways to new heights.
+                        </p>
+
+                        <div className="bg-white/10 rounded-2xl p-4 md:p-5 border border-white/15 shadow-inner">
+                          <p className="font-semibold text-white">
+                            Welcome to the Verse Community. We are absolutely honored and thrilled to have you alongside us on this epoch-defining quest. We hope you gather immense value here, build lifelong connections with fascinating minds, and elevate your personal growth as an integral part of our supportive and positive home.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 7: CONTACTS */}
+              {settingsSubView === 'contact' && (
+                <div className="space-y-5">
+                  <div className={`p-4 rounded-[18px] border transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] text-white border-[#2C2C2E]' : 'bg-white text-slate-800 border-gray-200'
+                  }`}>
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-[#34C759] uppercase block mb-4">
+                      📞 DIRECT TELEGRAM NETWORKS
+                    </span>
+
+                    <div className="space-y-3">
+                      {/* Contact 1 */}
+                      <a 
+                        href="https://t.me/stone_brb" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <h4 className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Our JT Boss</h4>
+                          <span className="text-[16px] font-bold">@stone_brb</span>
+                        </div>
+                        <ExternalLink className="w-4.5 h-4.5 text-[#34C759]" />
+                      </a>
+
+                      {/* Contact 2 */}
+                      <a 
+                        href="https://t.me/juwelrana1012" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <h4 className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Anytime Contact</h4>
+                          <span className="text-[16px] font-bold">@juwelrana1012</span>
+                        </div>
+                        <ExternalLink className="w-4.5 h-4.5 text-[#34C759]" />
+                      </a>
+
+                      {/* Contact 3 */}
+                      <a 
+                        href="https://t.me/GetVerse/177601" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <h4 className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Any problem asked</h4>
+                          <span className="text-[15px] font-semibold">t.me/GetVerse/177601</span>
+                        </div>
+                        <ExternalLink className="w-4.5 h-4.5 text-[#34C759]" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 8: ABOUT BITCOIN.COM WALLET (LEGAL LINKS) */}
+              {settingsSubView === 'wallet_about' && (
+                <div className="space-y-5">
+                  <div className={`p-4 rounded-[18px] border transition-colors duration-300 ${
+                    displayMode === 'dark' ? 'bg-[#1C1C1E] text-white border-[#2C2C2E]' : 'bg-white text-slate-800 border-gray-200'
+                  }`}>
+                    <span className="text-[10px] font-mono font-bold tracking-widest text-[#FF3B30] uppercase block mb-4">
+                      ⚖️ WALLET SERVICE TERMS & ACCREDITATION
+                    </span>
+
+                    <div className="space-y-3">
+                      {/* Link 1: General T&C */}
+                      <a 
+                        href="https://www.bitcoin.com/bn/legal/user-agreement/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-[15px] font-semibold">General Terms & Conditions</span>
+                        <ExternalLink className="w-4 h-4 text-[#FF3B30]" />
+                      </a>
+
+                      {/* Link 2: Wallet Service Terms */}
+                      <a 
+                        href="https://www.bitcoin.com/bn/legal/wallet-service-terms/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-[15px] font-semibold">Wallet Service Terms</span>
+                        <ExternalLink className="w-4 h-4 text-[#FF3B30]" />
+                      </a>
+
+                      {/* Link 3: Visit Bitcoin.com */}
+                      <a 
+                        href="https://www.bitcoin.com/bn/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-[15px] font-semibold">Visit Bitcoin.com</span>
+                        <ExternalLink className="w-4 h-4 text-[#FF3B30]" />
+                      </a>
+
+                      {/* Link 4: Privacy Policy */}
+                      <a 
+                        href="https://www.bitcoin.com/bn/privacy-policy/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all active:scale-[0.99] cursor-pointer ${
+                          displayMode === 'dark' 
+                            ? 'bg-slate-900 border-[#2C2C2E] text-white hover:bg-[#2C2C2E]' 
+                            : 'bg-slate-50 border-gray-105 text-gray-900 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="text-[15px] font-semibold">Privacy Policy</span>
+                        <ExternalLink className="w-4 h-4 text-[#FF3B30]" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBVIEW 9: ABOUT MY WEBSITE */}
+              {settingsSubView === 'about_my_website' && (
+                <div className="space-y-5">
+                  <div className={`p-6 rounded-[24px] border shadow-md space-y-5 transition-colors duration-300 ${
+                    displayMode === 'dark' 
+                      ? 'bg-[#1C1C1E] border-[#2C2C2E]' 
+                      : 'border-sky-250 bg-sky-50 text-slate-800'
+                  }`}>
+                    <div className={`flex items-center gap-3 pb-3 border-b ${
+                      displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-sky-200'
+                    }`}>
+                      <div className={`p-2 rounded-xl ${
+                        displayMode === 'dark' ? 'bg-[#2C2C2E] text-sky-400' : 'bg-sky-100 text-sky-700'
+                      }`}>
+                        <Info className="w-6 h-6" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className={`text-lg sm:text-xl font-black uppercase ${
+                          displayMode === 'dark' ? 'text-white' : 'text-sky-900'
+                        }`}>
+                          About My Website
+                        </h3>
+                        <p className={`text-[10px] uppercase font-mono tracking-wider font-extrabold ${
+                          displayMode === 'dark' ? 'text-sky-400' : 'text-sky-700'
+                        }`}>
+                          Educational & Informational Platform
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className={`space-y-5 text-sm sm:text-base leading-relaxed font-medium ${
+                      displayMode === 'dark' ? 'text-gray-300' : 'text-slate-800'
+                    }`}>
+                      {/* Section 1 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-sky-500 font-sans uppercase">
+                          (1) About this website
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          This website has been created for educational and informational purposes only, so that users can easily learn and understand Bitcoin.com Wallet's various features, usage methods and cryptocurrency ecosystem. Efforts are made to keep market prices and other information displayed here as accurate as possible.
+                        </p>
+                      </div>
+
+                      {/* Section 2 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-[#8b5e3c] font-sans uppercase">
+                          (2) Educational and informational platforms
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          This website is not the official website or app of Bitcoin.com Wallet and has no direct affiliation or endorsement with Bitcoin.com. The various features, interfaces and information displayed here are presented only for the convenience of the users, so that they can easily analyze and understand the various topics.
+                        </p>
+                        <div className={`text-[11px] font-mono font-black flex items-center gap-1 opacity-90 ${
+                          displayMode === 'dark' ? 'text-amber-400' : 'text-amber-700'
+                        }`}>
+                          Demo→Educational→Guide→Information Hub
+                        </div>
+                      </div>
+
+                      {/* Section 3 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-rose-500 font-sans uppercase">
+                          (3) For official app usage
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          Please use the official Bitcoin.com platform to download and use the official Bitcoin.com Wallet app. This website is created for informational, educational and user awareness purposes only. The various information, instructions and topics provided here will help users to learn and understand Bitcoin.com and the VERSE Ecosystem in depth.
+                        </p>
+                        <div className="pt-2">
+                          <a 
+                            href="https://wallet.bitcoin.com/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-[#007AFF] text-white text-xs font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
+                          >
+                            Download here : wallet.bitcoin.com
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Section 4 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-indigo-400 font-sans uppercase">
+                          (4) Learn about ecosystems
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          Bitcoin.com Ecosystem, Wallet Features, Market Information and other important topics are discussed in detail in various sections of this website. Through this, users can learn, understand and analyze the entire ecosystem with real-world experience.
+                        </p>
+                      </div>
+
+                      {/* Section 5 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-purple-400 font-sans uppercase">
+                          (5) VERSE AND RELATED SUBJECTS
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          Also, various topics related to VERSE Token and its various uses, utilities, community and ecosystem are discussed here. This information will help users to better know and understand the VERSE Ecosystem.
+                        </p>
+                      </div>
+
+                      {/* Section 6 */}
+                      <div className={`space-y-2 p-4 rounded-2xl border shadow-sm text-left ${
+                        displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E]' : 'bg-white border-sky-100'
+                      }`}>
+                        <h4 className="text-sm sm:text-base font-black text-emerald-500 font-sans uppercase">
+                          (6) Especially important for new users
+                        </h4>
+                        <p className={`text-xs sm:text-sm font-semibold leading-relaxed ${
+                          displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
+                        }`}>
+                          This platform is very important for those who are new to Cryptocurrency, Blockchain, Bitcoin.com Ecosystem or VERSE and don't know much about these networks and technologies. An attempt has been made here to explain various topics in simple language, so that even new users can gradually gain an understanding of the entire ecosystem.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1997,7 +2793,6 @@ function QuizGame({ onBack, onWin }: { onBack: () => void; onWin: (bonus: number
     const correctChoice = currentQuestions[currentStep][5];
     if (choice === correctChoice) {
       setResult('correct');
-      onWin(10);
       setTimeout(() => {
         if (currentStep < currentQuestions.length - 1) {
           setCurrentStep(prev => prev + 1);
@@ -2108,11 +2903,10 @@ function QuizGame({ onBack, onWin }: { onBack: () => void; onWin: (bonus: number
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className={`p-4 rounded-xl text-center font-bold flex items-center justify-center gap-2 ${
-                    result === 'correct' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                    result === 'correct' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-red-500/20 text-red-600'
                   }`}
                 >
-                  {result === 'correct' ? <Trophy className="w-5 h-5" /> : null}
-                  {result === 'correct' ? 'Brilliant! +10 Verse earned' : 'Nice try! Analyze and repeat.'}
+                  {result === 'correct' ? 'Success!' : 'Wrong! Try again.'}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -2127,6 +2921,7 @@ function WalletSimulator({
   balance, 
   tokenBalances, 
   marketData, 
+  setMarketData,
   lastSync,
   lastSave,
   history, 
@@ -2139,6 +2934,7 @@ function WalletSimulator({
   balance: number; 
   tokenBalances: Record<string, number>;
   marketData: Record<string, MarketData>;
+  setMarketData: React.Dispatch<React.SetStateAction<Record<string, MarketData>>>;
   lastSync: Date;
   lastSave: Date | null;
   history: Transaction[];
@@ -2153,6 +2949,164 @@ function WalletSimulator({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [expandedIntro, setExpandedIntro] = useState<boolean>(false);
+
+  // --- Price Alerts State & Logic ---
+  const [priceAlerts, setPriceAlerts] = useState<{
+    id: string;
+    token: string;
+    targetValue: number;
+    condition: 'above' | 'below';
+    triggered: boolean;
+    createdAt: Date;
+    triggeredAt?: Date;
+  }[]>(() => {
+    try {
+      const u = safeStorage.getItem('verseUser') || 'default';
+      const saved = safeStorage.getItem(`verse_price_alerts_${u}`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((item: any) => ({
+          ...item,
+          createdAt: new Date(item.createdAt),
+          triggeredAt: item.triggeredAt ? new Date(item.triggeredAt) : undefined
+        }));
+      }
+    } catch (e) {
+      console.error("Error loading price alerts:", e);
+    }
+    return [];
+  });
+
+  const [toasts, setToasts] = useState<{ id: string; message: string; sub: string; token: string }[]>([]);
+
+  // Monitor prices for alerts
+  useEffect(() => {
+    let triggeredAny = false;
+    const triggeredList: { id: string; message: string; sub: string; token: string }[] = [];
+
+    setPriceAlerts(prev => {
+      let isChanged = false;
+      const next = prev.map(alert => {
+        if (alert.triggered) return alert;
+        const currentPrice = marketData[alert.token]?.price;
+        if (currentPrice === undefined) return alert;
+
+        let isHit = false;
+        if (alert.condition === 'above' && currentPrice >= alert.targetValue) {
+          isHit = true;
+        } else if (alert.condition === 'below' && currentPrice <= alert.targetValue) {
+          isHit = true;
+        }
+
+        if (isHit) {
+          isChanged = true;
+          triggeredAny = true;
+          const formattedTarget = alert.targetValue < 1 ? `$${alert.targetValue.toFixed(4)}` : `$${alert.targetValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          const formattedCurrent = currentPrice < 1 ? `$${currentPrice.toFixed(4)}` : `$${currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          
+          triggeredList.push({
+            id: Math.random().toString(36).substring(2, 9),
+            message: `🔔 Price Alert Triggered: ${alert.token}`,
+            sub: `${alert.token} has reached ${formattedCurrent} (Target ${alert.condition === 'above' ? '≥' : '≤'} ${formattedTarget})`,
+            token: alert.token
+          });
+
+          return {
+            ...alert,
+            triggered: true,
+            triggeredAt: new Date()
+          };
+        }
+        return alert;
+      });
+
+      if (isChanged) {
+        try {
+          const u = safeStorage.getItem('verseUser') || 'default';
+          safeStorage.setItem(`verse_price_alerts_${u}`, JSON.stringify(next));
+        } catch (e) {
+          console.error(e);
+        }
+        return next;
+      }
+      return prev;
+    });
+
+    if (triggeredAny && triggeredList.length > 0) {
+      setToasts(prev => [...prev, ...triggeredList]);
+      triggeredList.forEach(item => {
+        setTimeout(() => {
+          setToasts(prev => prev.filter(t => t.id !== item.id));
+        }, 8000);
+      });
+    }
+  }, [marketData]);
+
+  // Alert Creation states
+  const [newAlertToken, setNewAlertToken] = useState<string>('VERSE');
+  const [newAlertCondition, setNewAlertCondition] = useState<'above' | 'below'>('above');
+  const [newAlertPrice, setNewAlertPrice] = useState<string>('');
+
+  const handleAddAlert = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsedPrice = parseFloat(newAlertPrice);
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      triggerError("Please enter a valid target price greater than 0.");
+      return;
+    }
+
+    const newId = Math.random().toString(36).substring(2, 9);
+    const newAlert = {
+      id: newId,
+      token: newAlertToken,
+      targetValue: parsedPrice,
+      condition: newAlertCondition,
+      triggered: false,
+      createdAt: new Date()
+    };
+
+    setPriceAlerts(prev => {
+      const next = [newAlert, ...prev];
+      try {
+        const u = safeStorage.getItem('verseUser') || 'default';
+        safeStorage.setItem(`verse_price_alerts_${u}`, JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+
+    setNewAlertPrice('');
+    triggerSuccess(`Added price alert: ${newAlertToken} ${newAlertCondition} $${parsedPrice.toLocaleString()}`);
+  };
+
+  const handleDeleteAlert = (id: string) => {
+    setPriceAlerts(prev => {
+      const next = prev.filter(a => a.id !== id);
+      try {
+        const u = safeStorage.getItem('verseUser') || 'default';
+        safeStorage.setItem(`verse_price_alerts_${u}`, JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+    triggerSuccess("Price alert removed successfully.");
+  };
+
+  const handleClearTriggeredAlerts = () => {
+    setPriceAlerts(prev => {
+      const next = prev.filter(a => !a.triggered);
+      try {
+        const u = safeStorage.getItem('verseUser') || 'default';
+        safeStorage.setItem(`verse_price_alerts_${u}`, JSON.stringify(next));
+      } catch (e) {
+        console.error(e);
+      }
+      return next;
+    });
+    triggerSuccess("Cleared triggered price alerts history.");
+  };
 
   // --- Staking Yield Farms & Pools State (Screenshot 1: Farms & Pools) ---
   const [stakedAmounts, setStakedAmounts] = useState<Record<string, number>>(() => {
@@ -2488,8 +3442,50 @@ function WalletSimulator({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-8"
+      className="space-y-8 relative"
     >
+      {/* Floating Price Alerts Toasts Container */}
+      <div className="fixed top-6 right-6 z-[9999] pointer-events-none space-y-3 max-w-sm w-full px-4">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 50, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 30, scale: 0.9 }}
+              className="bg-slate-900/95 border border-amber-500/30 text-white p-4 rounded-2xl shadow-2xl backdrop-blur-md flex items-start gap-4 pointer-events-auto relative overflow-hidden"
+            >
+              {/* Gold Indicator Ribbon */}
+              <div className="absolute top-0 bottom-0 left-0 w-1 bg-amber-500" />
+              
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+                <Bell className="w-4 h-4" />
+              </div>
+
+              <div className="flex-1 space-y-1">
+                <h5 className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center justify-between">
+                  {toast.message}
+                </h5>
+                <p className="text-[11px] text-gray-200 font-mono leading-relaxed">
+                  {toast.sub}
+                </p>
+                <span className="inline-block text-[8px] font-mono bg-white/10 text-white/80 px-1.5 py-0.5 rounded">
+                  Price Alert
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+                className="text-gray-400 hover:text-white p-1 text-xs cursor-pointer focus:outline-none"
+              >
+                ✕
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       {/* Premium Educational Journey Banner */}
       <div className="w-full bg-white border border-[#c0a080]/20 rounded-[2rem] p-6 shadow-sm relative overflow-hidden text-slate-800">
         <div className="absolute top-0 right-0 p-6 text-[#c0a080]/10 pointer-events-none">
@@ -3445,6 +4441,185 @@ function WalletSimulator({
                   <p className="text-gray-300 text-xs italic font-serif">No transaction entries found in history.</p>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* TOKEN PRICE ALERTS CARD */}
+          <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 space-y-6 shadow-xl text-slate-800">
+            <div className="flex justify-between items-center">
+              <h4 className="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-[#c0a080]" />
+                Price Alerts
+              </h4>
+              {priceAlerts.some(a => a.triggered) && (
+                <button
+                  type="button"
+                  onClick={handleClearTriggeredAlerts}
+                  className="text-[10px] text-[#bd9471] hover:text-rose-500 font-bold font-mono tracking-tight uppercase cursor-pointer"
+                >
+                  Clear Triggered
+                </button>
+              )}
+            </div>
+
+            {/* Price Alert Creation Form */}
+            <form onSubmit={handleAddAlert} className="space-y-3 bg-slate-50 p-4 rounded-3xl border border-gray-100">
+              <span className="text-[10px] font-mono tracking-wider font-extrabold text-[#bd9471] uppercase block mb-1">Create Price Alert</span>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-widest block mb-1">Token</label>
+                  <select
+                    value={newAlertToken}
+                    onChange={(e) => setNewAlertToken(e.target.value)}
+                    className="w-full text-xs font-bold border border-gray-200 bg-white px-2.5 py-1.5 rounded-xl text-slate-700 focus:outline-none focus:border-[#c0a080]"
+                  >
+                    {SUPPORTED_TOKENS.map(t => (
+                      <option key={t.symbol} value={t.symbol}>{t.symbol}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-mono text-gray-400 uppercase tracking-widest block mb-1">Condition</label>
+                  <select
+                    value={newAlertCondition}
+                    onChange={(e) => setNewAlertCondition(e.target.value as 'above' | 'below')}
+                    className="w-full text-xs font-bold border border-gray-200 bg-white px-2.5 py-1.5 rounded-xl text-slate-700 focus:outline-none focus:border-[#c0a080]"
+                  >
+                    <option value="above">Goes Above (≥)</option>
+                    <option value="below">Goes Below (≤)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[9px] font-mono text-gray-400 uppercase tracking-widest block">Target Price (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder={marketData[newAlertToken]?.price ? marketData[newAlertToken].price.toString() : "0.00"}
+                    value={newAlertPrice}
+                    onChange={(e) => setNewAlertPrice(e.target.value)}
+                    className="w-full pl-6 pr-3 py-1.5 text-xs font-mono font-bold border border-gray-200 bg-white rounded-xl text-slate-700 focus:outline-none focus:border-[#c0a080]"
+                  />
+                </div>
+                <div className="text-[9px] text-[#bd9471] font-mono flex justify-between px-1">
+                  <span>Current: ${marketData[newAlertToken]?.price ? (marketData[newAlertToken].price < 1 ? marketData[newAlertToken].price.toFixed(4) : marketData[newAlertToken].price.toLocaleString()) : '0.00'}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = marketData[newAlertToken]?.price;
+                      if (cur) setNewAlertPrice(cur.toString());
+                    }}
+                    className="hover:underline focus:outline-none"
+                  >
+                    Use Current
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2 bg-slate-950 text-white hover:bg-[#c0a080] transition-colors font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+              >
+                Add Price Alert
+              </button>
+            </form>
+
+            {/* List of Alerts */}
+            <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1">
+              {priceAlerts.length > 0 ? (
+                priceAlerts.map(alert => {
+                  const currentPrice = marketData[alert.token]?.price || 0;
+                  const percentToTarget = alert.targetValue > 0 ? Math.abs((currentPrice - alert.targetValue) / alert.targetValue) * 100 : 0;
+                  
+                  return (
+                    <div 
+                      key={alert.id} 
+                      className={`relative overflow-hidden p-3 border rounded-2xl transition-all ${
+                        alert.triggered 
+                          ? 'bg-amber-500/5 border-amber-500/10 opacity-75' 
+                          : 'bg-white border-gray-100 hover:border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-slate-800">{alert.token}</span>
+                          <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded ${
+                            alert.condition === 'above' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+                          }`}>
+                            {alert.condition === 'above' ? '≥' : '≤'} ${alert.targetValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 relative z-10">
+                          {alert.triggered ? (
+                            <span className="text-[9px] font-mono text-[#8b5e3c] bg-amber-500/10 px-1.5 py-0.5 rounded-full font-bold font-mono">
+                              Triggered
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-mono text-slate-400">
+                              {percentToTarget.toFixed(1)}% away
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAlert(alert.id)}
+                            className="text-gray-300 hover:text-rose-500 p-1 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
+                            title="Delete Alert"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Spark progress track or timestamp info */}
+                      <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-gray-400">
+                        <span>Current: ${currentPrice < 1 ? currentPrice.toFixed(4) : currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span>
+                          {alert.triggeredAt 
+                            ? `Sent: ${new Date(alert.triggeredAt).toLocaleTimeString()}` 
+                            : `Set: ${new Date(alert.createdAt).toLocaleTimeString()}`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-gray-300 text-xs italic font-serif">
+                  No active price alerts.
+                </div>
+              )}
+            </div>
+
+            {/* MOCK PRICE STIMULATOR BUTTON (Allows user to play with triggers instantly!) */}
+            <div className="pt-2 border-t border-amber-500/5">
+              <button
+                type="button"
+                onClick={() => {
+                  setMarketData(prev => {
+                    const next = { ...prev };
+                    Object.keys(next).forEach(symbol => {
+                      const rand = Math.random() - 0.5; // -0.5 to 0.5
+                      const factor = rand > 0 ? 1.08 : 0.92; // +8% or -8%
+                      next[symbol] = {
+                        ...next[symbol],
+                        price: next[symbol].price * factor,
+                        sparkline: [...next[symbol].sparkline.slice(1), next[symbol].price * factor]
+                      };
+                    });
+                    return next;
+                  });
+                  triggerSuccess("Simulated market volatility! Token prices updated by ±8%.");
+                }}
+                className="w-full py-2 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-100 text-emerald-800 transition-colors font-bold text-[10px] font-mono uppercase tracking-widest rounded-xl text-center flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3 h-3 animate-spin" />
+                Simulate ±8% Volatility (Instant Test)
+              </button>
             </div>
           </div>
 

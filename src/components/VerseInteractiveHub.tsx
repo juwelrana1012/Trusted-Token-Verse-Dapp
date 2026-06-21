@@ -39,7 +39,7 @@ export default function VerseInteractiveHub({ onBack }: VerseInteractiveHubProps
             className="flex items-center gap-2 px-5 py-2.5 bg-slate-900/80 border border-slate-800 rounded-2xl hover:border-slate-700 hover:text-indigo-400 text-slate-300 transition-all font-bold text-sm cursor-pointer shadow-md group"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>গেম ড্যাশবোর্ড / Back to Website</span>
+            <span>Back to Website</span>
           </button>
         </div>
 
@@ -120,7 +120,7 @@ export default function VerseInteractiveHub({ onBack }: VerseInteractiveHubProps
               {/* Copy URL to Clipboard (fully functional action, no visible URL underneath the button) */}
               <button
                 onClick={handleCopyLink}
-                title="Copy Link to Clipboard / লিংক কপি করুন"
+                title="Copy Link to Clipboard"
                 className="hover:scale-105 active:scale-95 flex items-center gap-2 px-3.5 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/60 rounded-xl text-indigo-400 text-xs font-black transition-all cursor-pointer shadow-sm min-w-[110px] justify-center"
               >
                 <AnimatePresence mode="white">

@@ -7,8 +7,8 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Maximize2, 
-  Download, 
-  ExternalLink 
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react';
 
 const SYSTEM_IMAGES = [
@@ -40,10 +40,13 @@ const SYSTEM_IMAGES = [
   { id: 26, url: "https://i.ibb.co.com/jkT52ZqS/IMG-20260601-092403.jpg", alt: "Verse System Activity 26" }
 ];
 
-export default function BottomGallery() {
+interface EcosystemActivityLogProps {
+  onBack: () => void;
+}
+
+export default function EcosystemActivityLog({ onBack }: EcosystemActivityLogProps) {
   const [selectedImgIndex, setSelectedImgIndex] = useState<number | null>(null);
 
-  // Setup Keyboard arrow key navigation when viewer is open
   useEffect(() => {
     if (selectedImgIndex === null) return;
     
@@ -80,9 +83,20 @@ export default function BottomGallery() {
   const activeImage = selectedImgIndex !== null ? SYSTEM_IMAGES[selectedImgIndex] : null;
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-12" id="bitcoin-community-gallery-view">
+    <div className="space-y-6 max-w-4xl mx-auto px-4" id="ecosystem-activity-log-view">
+      {/* Top Controller Header */}
+      <div className="w-full flex justify-between items-center bg-white border border-gray-150 p-4.5 rounded-2xl shadow-sm">
+        <button 
+          onClick={onBack} 
+          className="p-2.5 hover:bg-gray-50 rounded-xl transition-all flex items-center gap-2 text-[#8b5e3c] font-black uppercase text-xs tracking-wider cursor-pointer border border-transparent hover:border-gray-100"
+        >
+          <ArrowLeft className="w-5 h-5" /> Back Home
+        </button>
+        <span className="font-mono text-xs uppercase tracking-widest text-[#8b5e3c] font-black">Ecosystem Log View</span>
+      </div>
+
       <div className="bg-[#0b1329] border border-blue-900/30 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl relative overflow-hidden">
-        {/* Subtle decorative elements matching dark blue hub style */}
+        {/* Decorative ambient spots */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] pointer-events-none" />
         
@@ -94,7 +108,7 @@ export default function BottomGallery() {
             </div>
             <div>
               <h4 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200 uppercase tracking-tight">
-                Ecosystem Activity Log (সম্পূর্ণ কার্য বিবরণী)
+                Ecosystem Activity Log
               </h4>
               <p className="text-[10px] font-mono uppercase tracking-widest text-[#8b5e3c] font-black mt-0.5">
                 Proof of community engagement • 26 snapshots
@@ -102,11 +116,11 @@ export default function BottomGallery() {
             </div>
           </div>
           <div className="bg-sky-950/40 px-4 py-1.5 rounded-full border border-sky-400/10 text-[10px] text-slate-300 font-mono font-bold uppercase tracking-wider">
-            📁 Click to Zoom • ক্লিক করে সম্পূর্ণ দেখুন
+            📁 Click to Zoom
           </div>
         </div>
 
-        {/* Dense visual grid of 26 images as requested, zero skipped */}
+        {/* Visual Grid of 26 snapshots */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {SYSTEM_IMAGES.map((img, idx) => (
             <motion.div
@@ -116,7 +130,6 @@ export default function BottomGallery() {
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               className="bg-sky-950/10 border border-blue-900/20 hover:border-amber-500/35 rounded-3xl p-3 shadow-md hover:shadow-xl transition-all group overflow-hidden cursor-zoom-in"
             >
-              {/* Image Frame with corner rounding and soft containment */}
               <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl border border-blue-950/40 relative bg-slate-900">
                 <img
                   src={img.url}
@@ -126,32 +139,31 @@ export default function BottomGallery() {
                   loading="lazy"
                 />
                 
-                {/* Overlay with zoom icon */}
+                {/* Overlay Zoom */}
                 <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-300 backdrop-blur-[2px]">
                   <div className="w-10 h-10 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                     <Maximize2 className="w-5 h-5" />
                   </div>
                 </div>
 
-                {/* Index Indicator tag */}
+                {/* Counter */}
                 <div className="absolute top-3 left-3 bg-[#0c142c]/95 border border-amber-500/20 text-amber-500 font-mono text-[9px] font-black px-2.5 py-1 rounded-lg shadow-md uppercase tracking-wider">
                   No. {String(img.id).padStart(2, '0')}
                 </div>
               </div>
               
-              {/* Optional brief caption area */}
               <div className="mt-3.5 px-1 flex items-center justify-between">
                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-extrabold flex items-center gap-1">
                   <ImageIcon className="w-3 h-3 text-[#c0a080]" /> Open Snapshot
                 </span>
-                <span className="text-[9px] font-mono text-[#8b5e3c] font-black group-hover:text-amber-400 transition-colors uppercase">VIEW DETAILS</span>
+                <span className="text-[9px] font-mono text-[#8b5e3c] font-black group-hover:text-amber-400 transition-colors uppercase">VIEW LOG</span>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* PREMIUM HIGH-QUALITY MODAL LIGHTBOX OVERLAY */}
+      {/* LIGHTBOX MODAL */}
       <AnimatePresence>
         {activeImage && (
           <motion.div
@@ -170,15 +182,14 @@ export default function BottomGallery() {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                    Ecosystem Proof Snapshot
+                    Ecosystem Activity Proof
                   </h3>
                   <p className="text-[10px] font-mono text-amber-400/90 font-bold uppercase tracking-widest">
-                    LOG INDEX {selectedImgIndex !== null ? selectedImgIndex + 1 : 0} OF {SYSTEM_IMAGES.length}
+                    SNAPSHOT {selectedImgIndex !== null ? selectedImgIndex + 1 : 0} OF {SYSTEM_IMAGES.length}
                   </p>
                 </div>
               </div>
 
-              {/* Toolbar Action Links */}
               <div className="flex items-center gap-2">
                 <a
                   href={activeImage.url}
@@ -186,78 +197,71 @@ export default function BottomGallery() {
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider font-mono flex items-center gap-1.5 border border-white/5"
-                  title="Open original image link"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  <span className="hidden sm:inline">ORIGINAL</span>
+                  <span className="hidden sm:inline">ORIGINAL LINK</span>
                 </a>
                 
                 <button
                   onClick={() => setSelectedImgIndex(null)}
                   className="w-10 h-10 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white flex items-center justify-center border border-rose-500/20 hover:border-transparent transition-all cursor-pointer"
-                  title="Close Media Viewer (Esc)"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Central Main Showcase Section */}
-            <div className="w-full max-w-5xl flex-1 flex items-center justify-between gap-2.5 sm:gap-6 relative my-4">
-              {/* Left Navigation trigger */}
+            {/* Central Slide Panel */}
+            <div className="w-full max-w-5xl flex-1 flex items-center justify-between gap-3 relative my-4">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handlePrev();
                 }}
                 className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-amber-500/40 text-white flex items-center justify-center transition-all transform active:scale-90 shadow-xl cursor-pointer hover:text-amber-400 relative z-30"
-                title="Previous Image (Left Arrow)"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
 
-              {/* Main Image Frame container (Guaranteed high visibility responsive ratio container) */}
               <motion.div
                 key={activeImage.id}
-                initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: -10 }}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="flex-1 max-h-[72vh] flex items-center justify-center relative z-20 group/viewer"
+                className="flex-1 max-h-[72vh] flex items-center justify-center relative z-20"
                 onClick={(e) => e.stopPropagation()}
               >
                 <img
                   src={activeImage.url}
                   alt={activeImage.alt}
-                  className="max-h-[70vh] max-w-full rounded-[2rem] border-2 border-white/10 shadow-2xl hover:border-amber-500/40 transition-colors duration-500 object-contain block select-none bg-slate-900"
+                  className="max-h-[70vh] max-w-full rounded-[2rem] border-2 border-white/10 shadow-2xl object-contain block select-none bg-slate-900"
                   referrerPolicy="no-referrer"
                 />
               </motion.div>
 
-              {/* Right Navigation trigger */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleNext();
                 }}
                 className="w-12 h-12 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 hover:border-amber-500/40 text-white flex items-center justify-center transition-all transform active:scale-90 shadow-xl cursor-pointer hover:text-amber-400 relative z-30"
-                title="Next Image (Right Arrow)"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Bottom Caption Indicator bar */}
+            {/* Footer details */}
             <div className="w-full max-w-3xl text-center py-3 border-t border-white/10 flex flex-col items-center gap-1.5 relative z-30">
               <p className="text-xs text-white/90 font-extrabold max-w-lg uppercase tracking-wider">
-                🔬 Ecosystem Detail Snap: {activeImage.alt}
+                Snapshot Detail: {activeImage.alt}
               </p>
               <div className="flex gap-2 justify-center flex-wrap items-center text-[10px] text-amber-400 font-mono font-bold tracking-widest uppercase">
-                <span>⚡ NO. {activeImage.id}</span>
+                <span>⚡ IMG-INDEX NO. {activeImage.id}</span>
                 <span className="text-white/20">•</span>
-                <span>🔥 VERSE ENGAGEMENT PROTOCOL</span>
+                <span>AUTHENTIC VERSE RECORD</span>
                 <span className="text-white/20">•</span>
-                <span>🖱️ CLICK ANYWHERE OUTSIDE TO CLOSE</span>
+                <span>CLICK ANYWHERE OUTSIDE TO EXIT</span>
               </div>
             </div>
           </motion.div>
