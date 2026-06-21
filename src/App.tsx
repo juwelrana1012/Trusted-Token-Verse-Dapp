@@ -774,7 +774,27 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen w-full font-sans selection:bg-[#c0a080] selection:text-white flex flex-col items-center transition-colors duration-300 ${displayMode === 'dark' ? 'bg-[#121214] text-gray-100' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen w-full font-sans selection:bg-[#c0a080] selection:text-white flex flex-col items-center transition-colors duration-300 ${displayMode === 'dark' ? 'bg-[#121214] text-gray-100' : 'bg-[#f8fafc] text-gray-900'}`}>
+
+      {/* Dynamic 5-Color Blended Ambient Background Glows for Inner Web Pages (#3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF) */}
+      {!(gameState === 'home' && homeSubState === 'welcome') && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+          {/* Blend of 5 high-end responsive ambient glowing blobs */}
+          {/* Blue Fluid Glow (Top Left) */}
+          <div className="absolute top-[-10vw] left-[-10vw] w-[45vw] h-[45vw] max-w-[550px] rounded-full bg-[#3B82F6]/10 dark:bg-[#3B82F6]/6 blur-[120px] animate-pulse" style={{ animationDuration: '10s' }} />
+          {/* Indigo Fluid Glow (Center Right) */}
+          <div className="absolute top-[20%] right-[-10vw] w-[40vw] h-[40vw] max-w-[500px] rounded-full bg-[#6366F1]/10 dark:bg-[#6366F1]/5 blur-[110px] animate-pulse" style={{ animationDuration: '13s' }} />
+          {/* Purple Fluid Glow (Bottom Left) */}
+          <div className="absolute bottom-[10vw] left-[-5vw] w-[35vw] h-[35vw] max-w-[450px] rounded-full bg-[#8B5CF6]/9 dark:bg-[#8B5CF6]/5 blur-[100px] animate-pulse" style={{ animationDuration: '9s' }} />
+          {/* Violet Fluid Glow (Bottom Right) */}
+          <div className="absolute bottom-[-10vw] right-[-5vw] w-[40vw] h-[40vw] max-w-[500px] rounded-full bg-[#A855F7]/10 dark:bg-[#A855F7]/6 blur-[115px] animate-pulse" style={{ animationDuration: '12s' }} />
+          {/* Pink/Magenta Fluid Glow (Center) */}
+          <div className="absolute top-[35%] left-[25%] w-[35vw] h-[35vw] max-w-[420px] rounded-full bg-[#D946EF]/8 dark:bg-[#D946EF]/4 blur-[105px] animate-pulse" style={{ animationDuration: '15s' }} />
+          
+          {/* Subtle linear overlay to synthesize into a unified theme */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#3B82F6]/2 via-[#8B5CF6]/2 to-[#D946EF]/3 opacity-70 dark:opacity-40" />
+        </div>
+      )}
 
       {/* PREMIUM TOPIC NAVIGATION LOADING OVERLAY WITH PALETTE (Mint Green, Aqua, Sky Blue, Royal Blue) */}
       <AnimatePresence>
@@ -1190,24 +1210,28 @@ export default function App() {
           >
             {/* Navigation Header - Only shown inside gameplay/features screens, completely hidden on the welcome page */}
             {!(gameState === 'home' && homeSubState === 'welcome') && (
-              <header className="border-b border-amber-500/10 bg-white/95 mt-4 mb-2 mx-auto max-w-4xl w-full rounded-2xl shadow-[0_3px_20px_rgba(139,94,60,0.08)] sticky top-2 z-[99] backdrop-blur-md">
+              <header className={`border-b mt-4 mb-2 mx-auto max-w-4xl w-full rounded-2xl shadow-[0_3px_20px_rgba(139,94,60,0.08)] sticky top-2 z-[99] backdrop-blur-md transition-colors ${
+                displayMode === 'dark' ? 'border-[#2C2C2E] bg-black/95' : 'border-[#8b5e3c]/15 bg-white/95'
+              }`}>
                 <div className="px-4 sm:px-6 py-3.5 flex items-center justify-between w-full relative">
                   
                   {/* Top-Left Corner Premium Logo and Brand Name side-by-side on a single line */}
                   <div className="flex items-center gap-3 min-w-0">
                     <button
                       onClick={() => setShowSettings(true)}
-                      className="text-[#8b5e3c] bg-amber-500/5 hover:bg-amber-500/15 active:scale-95 transition-all duration-150 px-2.5 py-1.5 rounded-xl border border-amber-500/10 font-black text-sm md:text-base select-none flex-shrink-0 cursor-pointer"
+                      className={`active:scale-95 transition-all duration-150 px-2.5 py-1.5 rounded-xl border font-black text-sm md:text-base select-none flex-shrink-0 cursor-pointer ${
+                        displayMode === 'dark' ? 'text-sky-400 bg-sky-500/5 border-sky-500/10 hover:bg-sky-500/15' : 'text-[#8b5e3c] bg-amber-500/5 border-[#8b5e3c]/10 hover:bg-amber-500/15'
+                      }`}
                     >
                       ( ☰ )
                     </button>
                     <img
                       src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
                       alt="Bitcoin.com logo"
-                      className="w-10 h-10 object-cover rounded-xl border border-amber-500/30 shadow-md transform hover:scale-105 transition-transform duration-300 flex-shrink-0"
+                      className="w-10 h-10 object-cover rounded-xl border border-[#8b5e3c]/30 shadow-md transform hover:scale-105 transition-transform duration-300 flex-shrink-0"
                       referrerPolicy="no-referrer"
                     />
-                    <h1 className="text-xs sm:text-sm md:text-base font-black tracking-tight text-[#8b5e3c] uppercase leading-none select-none min-w-0 truncate">
+                    <h1 className="text-xs sm:text-sm md:text-base font-black tracking-tight uppercase leading-none select-none min-w-0 truncate bg-gradient-to-r from-[#3B82F6] via-[#8B5CF6] to-[#D946EF] bg-clip-text text-transparent">
                       Bitcoin Wallet &amp; Verse Learning Hub
                     </h1>
                   </div>
@@ -1219,7 +1243,9 @@ export default function App() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setGameState('home')}
-                        className="relative px-4 py-2 rounded-xl border border-[#8b5e3c]/25 bg-amber-500/5 hover:bg-[#8b5e3c] text-[#8b5e3c] hover:text-white transition-all duration-200 flex items-center gap-1.5 font-mono font-black text-xs cursor-pointer select-none"
+                        className={`relative px-4 py-2 rounded-xl border transition-all duration-200 flex items-center gap-1.5 font-mono font-black text-xs cursor-pointer select-none ${
+                          displayMode === 'dark' ? 'border-[#2C2C2E] bg-black text-white hover:bg-[#2C2C2E]' : 'border-[#8b5e3c]/25 bg-amber-500/5 text-[#8b5e3c] hover:text-white hover:bg-[#8b5e3c]'
+                        }`}
                       >
                         <span>🏠 BACK HOME</span>
                       </motion.button>
@@ -1248,89 +1274,138 @@ export default function App() {
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -15 }}
-                          className="w-full max-w-3xl mx-auto flex flex-col gap-6 items-center"
+                          className="w-full max-w-3xl mx-auto flex flex-col items-center relative"
                         >
-                          {/* Welcome greetings box (solid deep white colored) */}
-                          <section className={`text-center w-full select-none p-6 sm:p-8 rounded-3xl shadow-sm border flex flex-col items-center transition-colors duration-300 ${
-                            displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E] text-white' : 'bg-white border-slate-100 text-[#8b5e3c]'
-                          }`}>
-                            <h2 className="text-2xl sm:text-3xl font-black leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25]">
-                              {t("Welcome to Verse Hub!", "ভার্স হাবে আপনাকে স্বাগতম!")}
+                          {/* Elegant high-quality professional 5-color blend ambient background glows (#3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF) */}
+                          <div className="absolute inset-x-0 -top-16 -bottom-32 overflow-hidden pointer-events-none -z-10 select-none">
+                            {/* Radial Glow Blob 1 - Top Left */}
+                            <div className="absolute top-0 -left-12 w-80 h-80 rounded-full bg-gradient-to-tr from-[#3B82F6]/10 via-[#6366F1]/15 to-[#8B5CF6]/10 blur-[90px] animate-pulse" style={{ animationDuration: '9s' }} />
+                            {/* Radial Glow Blob 2 - Center Right */}
+                            <div className="absolute top-1/4 -right-16 w-88 h-88 rounded-full bg-gradient-to-br from-[#8B5CF6]/10 via-[#A855F7]/12 to-[#D946EF]/10 blur-[100px] animate-pulse" style={{ animationDuration: '11s' }} />
+                            {/* Radial Glow Blob 3 - Bottom Left */}
+                            <div className="absolute bottom-12 left-1/4 w-96 h-96 rounded-full bg-gradient-to-tr from-[#3B82F6]/8 via-[#8B5CF6]/10 to-[#D946EF]/12 blur-[110px] animate-pulse" style={{ animationDuration: '13s' }} />
+                          </div>
+
+                               {/* Top-Left Logo Block (Ujjol/Spinning/Shining style - V maintains static upright position) */}
+                          <div className="w-full flex items-center justify-start gap-2 px-4 mb-4 select-none">
+                            <div className="relative flex items-center justify-center w-12 h-12">
+                              {/* Pulse-glow behind logo */}
+                              <div className="absolute w-12 h-12 rounded-full bg-rose-500/25 blur-md animate-pulse pointer-events-none" />
+                              
+                              {/* Glowing spinning ring (the colorful gradient background rotates continuously) */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full p-[2.5px] bg-gradient-to-tr from-rose-500 via-amber-400 to-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)]"
+                                animate={{ rotate: 360 }}
+                                transition={{ ease: "linear", duration: 6, repeat: Infinity }}
+                              />
+                              
+                              {/* Main Logo Container (Static, doesn't rotate, maintaining V perfectly upright) */}
+                              <div className="absolute w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden z-10 shadow-inner">
+                                {/* Sweeping bright shimmer effect */}
+                                <motion.div 
+                                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent -translate-x-full"
+                                  animate={{ x: ["100%", "-100%"] }}
+                                  transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+                                />
+                                <img
+                                  src="https://i.ibb.co.com/cSX4SpFC/file-00000000fdd071fa8b2edad69edccb1f.png"
+                                  alt="Verse logo"
+                                  className="w-7 h-7 object-contain relative z-20"
+                                  referrerPolicy="no-referrer"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Branded "Verse" title */}
+                            <span className="text-xl font-black font-sans tracking-widest bg-gradient-to-r from-amber-500 via-[#8b5e3c] to-amber-600 bg-clip-text text-transparent uppercase drop-shadow-sm">
+                              Verse
+                            </span>
+                          </div>
+
+                          {/* Welcome greetings block (NO border, entirely transparent styling, absolute custom headings) */}
+                          <section className="text-center w-full select-none flex flex-col items-center mt-6">
+                            <h2 className="leading-tight text-center flex flex-col items-center select-none font-sans space-y-3">
+                              <span className="text-2xl sm:text-3xl uppercase tracking-[0.25em] font-black bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
+                                WELCOME
+                              </span>
+                              <span className="text-sm sm:text-base font-black uppercase tracking-[0.3em] bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
+                                TO
+                              </span>
+                              <span className="text-2xl sm:text-3xl md:text-4xl font-black bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent uppercase tracking-tight filter drop-shadow-[0_2px_10px_rgba(139,92,246,0.25)] leading-tight max-w-2xl px-4">
+                                BITCOIN WALLET &amp; VERSE LEARNING HUB
+                              </span>
                             </h2>
 
-                            {/* Action GET STARTED Button repositioned to the middle top area, styled beautifully */}
-                            <div className="pt-4 pb-2 w-full flex justify-center">
+                            {/* Action GET STARTED Button styled beautifully with medium size, green color border and 5-color blended text inside */}
+                            <div className="pt-10 pb-2 w-full flex justify-center">
                               <motion.button
-                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(16, 185, 129, 0.40)" }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setHomeSubState('features')}
-                                className="px-14 py-5 bg-gradient-to-r from-amber-500 via-[#8b5e3c] to-amber-600 text-white font-black text-2xl rounded-2xl tracking-[0.1em] shadow-[0_12px_36px_rgba(139,94,60,0.35)] hover:shadow-[0_15px_40px_rgba(139,94,60,0.55)] cursor-pointer select-none transition-all duration-300 uppercase shrink-0 border border-amber-400/20"
+                                className="px-9 py-4 text-base sm:text-lg bg-transparent font-black tracking-widest uppercase rounded-2xl border-[3px] border-emerald-500 dark:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:bg-emerald-500/10 transition-all duration-300 cursor-pointer select-none"
                               >
-                                {t("GET STARTED", "শুরু করুন")}
+                                <span className="bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent">
+                                  {t("Get Started", "শুরু করুন")}
+                                </span>
                               </motion.button>
                             </div>
                           </section>
 
-                          {/* Beautiful Description Points in closed bordered rectangular containers */}
-                          <div className={`w-full rounded-3xl p-6 sm:p-8 shadow-sm space-y-6 border transition-colors ${
-                            displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-slate-150'
-                          }`}>
-                            <div className={`flex items-center gap-2 pb-4 border-b ${
-                              displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-slate-100'
-                            }`}>
-                              <div className="w-2.5 h-6 bg-sky-500 rounded-full" />
-                              <h3 className={`text-base sm:text-lg font-black tracking-tight font-sans transition-colors ${
-                                displayMode === 'dark' ? 'text-white' : 'text-slate-800'
-                              }`}>
-                                About Our Platform & Educational Disclaimer
+                          {/* Beautiful Description Points in wide layout, separated by generous 1.2-inch distance (mt-20 sm:mt-24), NO outer border container */}
+                          <div className="w-full mt-24 sm:mt-28 space-y-6">
+                            <div className="flex items-center gap-3 pb-3 border-b border-dashed border-slate-200 dark:border-slate-800">
+                              <div className="w-3 h-6 rounded-full" style={{ backgroundImage: 'linear-gradient(to bottom, #3B82F6, #8B5CF6, #D946EF)' }} />
+                              <h3 className="text-lg sm:text-xl font-black font-sans tracking-tight bg-clip-text text-transparent uppercase" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
+                                {t("How it Works", "এটি যেভাবে কাজ করে")}
                               </h3>
                             </div>
 
                             <div className="grid grid-cols-1 gap-5">
                               {/* Point 1 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-sky-500/60' : 'bg-white border-slate-200 hover:border-sky-500/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-sky-600 font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (1) About this website
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  This website has been created for <span className="text-amber-700 font-bold">educational and informational</span> purposes only, so that users can easily learn and understand Bitcoin.com Wallet's various features, usage methods and cryptocurrency ecosystem. Efforts are made to keep market prices and other information displayed here as accurate as possible.
+                                  This website has been created for <span className="text-[#3B82F6] font-bold">educational and informational</span> purposes only, so that users can easily learn and understand Bitcoin.com Wallet's various features, usage methods and cryptocurrency ecosystem. Efforts are made to keep market prices and other information displayed here as accurate as possible.
                                 </p>
                               </div>
 
                               {/* Point 2 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8b5e3c]/60' : 'bg-white border-slate-200 hover:border-[#8b5e3c]/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-[#8b5e3c] font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (2) Educational and informational platforms
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  This website is <span className="text-red-650 font-bold">not the official website or app</span> of Bitcoin.com Wallet and has no direct affiliation or endorsement with Bitcoin.com. The various features, interfaces and information displayed here are presented only for the convenience of the users, so that they can easily analyze and understand the various topics.
+                                  This website is <span className="text-[#D946EF] font-bold">not the official website or app</span> of Bitcoin.com Wallet and has no direct affiliation or endorsement with Bitcoin.com. The various features, interfaces and information displayed here are presented only for the convenience of the users, so that they can easily analyze and understand the various topics.
                                 </p>
-                                <div className={`text-[11px] font-black font-mono tracking-wider px-3 py-1.5 rounded-xl border inline-block ${
-                                  displayMode === 'dark' ? 'text-amber-400 bg-amber-950/20 border-amber-950/50' : 'text-amber-700 bg-amber-50 border-amber-500/10'
-                                }`}>
+                                <div className={`text-[11px] font-black font-mono tracking-wider px-3 py-1.5 rounded-xl border inline-block text-slate-800 dark:text-slate-100 border-[#6366F1]/20 bg-slate-500/5`}>
                                   Demo ➔ Educational ➔ Guide ➔ Information Hub
                                 </div>
                               </div>
 
                               {/* Point 3 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-emerald-500/60' : 'bg-white border-slate-200 hover:border-emerald-500/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-emerald-700 font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (3) For official app usage
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  Please use the official Bitcoin.com platform to download and use the official Bitcoin.com Wallet app. This website is created for informational, educational and user awareness purposes only. The various information, instructions and topics provided here will help users to learn and understand Bitcoin.com and the <span className="text-blue-650 font-bold">VERSE Ecosystem</span> in depth.
+                                  Please use the official Bitcoin.com platform to download and use the official Bitcoin.com Wallet app. This website is created for informational, educational and user awareness purposes only. The various information, instructions and topics provided here will help users to learn and understand Bitcoin.com and the <span className="text-[#8B5CF6] font-bold">VERSE Ecosystem</span> in depth.
                                 </p>
                                 <div className="pt-1.5">
                                   <a 
@@ -1345,44 +1420,47 @@ export default function App() {
                               </div>
 
                               {/* Point 4 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-indigo-500/60' : 'bg-white border-slate-200 hover:border-indigo-500/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-indigo-700 font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (4) Learn about ecosystems
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  <span className="text-indigo-800 font-bold dark:text-indigo-300">Bitcoin.com Ecosystem, Wallet Features, Market Information</span> and other important topics are discussed in detail in various sections of this website. Through this, users can learn, understand and analyze the entire ecosystem with real-world experience.
+                                  <span className="text-[#6366F1] font-bold dark:text-sky-300">Bitcoin.com Ecosystem, Wallet Features, Market Information</span> and other important topics are discussed in detail in various sections of this website. Through this, users can learn, understand and analyze the entire ecosystem with real-world experience.
                                 </p>
                               </div>
 
                               {/* Point 5 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-purple-500/60' : 'bg-white border-slate-200 hover:border-purple-500/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-purple-700 font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (5) VERSE AND RELATED SUBJECTS
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  Also, various topics related to <span className="text-purple-800 font-bold dark:text-purple-300">VERSE Token</span> and its various uses, utilities, community and ecosystem are discussed here. This information will help users to better know and understand the VERSE Ecosystem.
+                                  Also, various topics related to <span className="text-[#A855F7] font-bold">VERSE Token</span> and its various uses, utilities, community and ecosystem are discussed here. This information will help users to better know and understand the VERSE Ecosystem.
                                 </p>
                               </div>
 
                               {/* Point 6 */}
-                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm ${
-                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-amber-600/60' : 'bg-white border-slate-200 hover:border-amber-600/40'
+                              <div className={`border rounded-2xl p-5 sm:p-6 space-y-3 transition-all shadow-sm relative overflow-hidden group ${
+                                displayMode === 'dark' ? 'bg-black/40 border-[#2C2C2E] hover:border-[#8B5CF6]/40' : 'bg-white border-slate-200 hover:border-[#8B5CF6]/30'
                               }`}>
-                                <h4 className="text-sm sm:text-base font-black text-amber-700 font-sans tracking-tight uppercase">
+                                <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                <h4 className="text-sm sm:text-base font-black font-sans tracking-tight uppercase bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)' }}>
                                   (6) Especially important for new users
                                 </h4>
                                 <p className={`text-xs sm:text-sm font-semibold leading-relaxed transition-colors ${
                                   displayMode === 'dark' ? 'text-gray-300' : 'text-slate-700'
                                 }`}>
-                                  This platform is <span className="text-slate-900 font-bold dark:text-white">very important for those who are new</span> to Cryptocurrency, Blockchain, Bitcoin.com Ecosystem or VERSE and don't know much about these networks and technologies. An attempt has been made here to explain various topics in simple language, so that even new users can gradually gain an understanding of the entire ecosystem.
+                                  This platform is <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#D946EF] font-bold">very important for those who are new</span> to Cryptocurrency, Blockchain, Bitcoin.com Ecosystem or VERSE and don't know much about these networks and technologies. An attempt has been made here to explain various topics in simple language, so that even new users can gradually gain an understanding of the entire ecosystem.
                                 </p>
                               </div>
                             </div>
@@ -1407,24 +1485,27 @@ export default function App() {
                                     key={topic.id}
                                     whileHover={{ 
                                       y: -6,
-                                      boxShadow: '0 20px 25px -5px rgba(139,94,60,0.1), 0 10px 10px -5px rgba(139,94,60,0.04)'
+                                      boxShadow: '0 20px 30px -5px rgba(99,102,241,0.15), 0 10px 15px -5px rgba(139,92,246,0.1)'
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleTopicNavigation(topic.id, topic.title)}
                                     className={`flex flex-col text-left p-6 rounded-[2rem] transition-all duration-300 group cursor-pointer relative overflow-hidden shadow-md ${
                                       displayMode === 'dark' 
-                                        ? 'bg-[#1C1C1E] hover:bg-[#2C2C2E]/40 border border-[#2C2C2E] hover:border-[#8b5e3c]/50 shadow-black/30' 
-                                        : 'bg-white hover:bg-slate-50/50 border border-amber-500/10 hover:border-[#8b5e3c]/35 shadow-amber-900/[0.02]'
+                                        ? 'bg-[#1C1C1E] hover:bg-[#2C2C2E]/40 border border-[#2C2C2E] hover:border-[#8B5CF6]/50 shadow-black/30' 
+                                        : 'bg-white hover:bg-slate-50/50 border border-slate-200/60 hover:border-[#8B5CF6]/40 shadow-slate-900/[0.02]'
                                     }`}
                                   >
+                                    {/* Top Horizontal Accent Line with the 5-Color Gradient */}
+                                    <div className="absolute top-0 left-0 right-0 h-[3px] opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+
                                     {/* Accent background glow based on the topic theme */}
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-amber-500/5 to-[#8b5e3c]/5 rounded-full blur-2xl pointer-events-none" />
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#8B5CF6]/5 to-[#D946EF]/5 rounded-full blur-2xl pointer-events-none" />
 
                                     {/* Top Metadata Row */}
                                     <div className="flex items-center justify-between w-full mb-5 relative z-10">
                                       {/* Icon Container with subtle border */}
                                       <div className={`w-12 h-12 rounded-2xl overflow-hidden border p-0.5 flex-shrink-0 shadow-inner group-hover:scale-105 transition-all duration-300 ${
-                                        displayMode === 'dark' ? 'border-[#2C2C2E] bg-black' : 'border-amber-500/15 bg-white'
+                                        displayMode === 'dark' ? 'border-[#2C2C2E] bg-black' : 'border-[#6366F1]/10 bg-white'
                                       }`}>
                                         <img
                                           src={topic.logoUrl}
@@ -1437,8 +1518,8 @@ export default function App() {
                                       {/* Tag Label */}
                                       <span className={`text-[9px] font-mono tracking-wider font-extrabold px-2.5 py-1 rounded-full border transition-colors ${
                                         displayMode === 'dark' 
-                                          ? 'text-[#e5ba94] bg-amber-950/20 border-amber-950/40' 
-                                          : 'text-[#bd9471] bg-amber-50 border-amber-500/10'
+                                          ? 'text-[#a5ccf9] bg-[#3B82F6]/10 border-[#3B82F6]/30' 
+                                          : 'text-[#6366F1] bg-[#6366F1]/5 border-[#6366F1]/15'
                                       }`}>
                                         {topic.tag}
                                       </span>
@@ -1446,15 +1527,15 @@ export default function App() {
 
                                     {/* Text Body */}
                                     <div className="space-y-1.5 flex-grow relative z-10">
-                                      <span className="block text-[10px] font-mono font-bold text-[#bd9471] uppercase tracking-widest leading-none">
+                                      <span className="block text-[10px] font-mono font-black uppercase tracking-widest leading-none bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }}>
                                         {topic.subtitle}
                                       </span>
-                                      <h3 className={`text-base font-black tracking-tight group-hover:text-[#8b5e3c] transition-colors ${
+                                      <h3 className={`text-base font-black tracking-tight group-hover:text-[#6366F1] dark:group-hover:text-[#d946ef] transition-colors ${
                                         displayMode === 'dark' ? 'text-white' : 'text-slate-800'
                                       }`}>
                                         {topic.title}
                                       </h3>
-                                      <p className={`text-xs font-medium leading-relaxed font-sans line-clamp-3 transition-colors ${
+                                      <p className={`text-xs font-semibold leading-relaxed font-sans line-clamp-3 transition-colors ${
                                         displayMode === 'dark' ? 'text-gray-300' : 'text-slate-500'
                                       }`}>
                                         {topic.desc}
@@ -1462,11 +1543,11 @@ export default function App() {
                                     </div>
 
                                     {/* Call to action arrow footer */}
-                                    <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-mono font-black text-[#8b5e3c] uppercase tracking-wider w-full relative z-10 ${
-                                      displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-amber-500/5'
+                                    <div className={`mt-5 pt-3 border-t flex items-center justify-between text-[11px] font-mono font-black uppercase tracking-wider w-full relative z-10 ${
+                                      displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-slate-100'
                                     }`}>
-                                      <span>ENTER PORTAL</span>
-                                      <span className="transform group-hover:translate-x-1 transition-transform duration-300">➜</span>
+                                      <span className="bg-gradient-to-r from-[#3B82F6] via-[#8B5CF6] to-[#D946EF] bg-clip-text text-transparent">ENTER PORTAL</span>
+                                      <span className="text-[#8B5CF6] dark:text-[#D946EF] transform group-hover:translate-x-1.5 transition-transform duration-300">➜</span>
                                     </div>
                                   </motion.button>
                                 );
