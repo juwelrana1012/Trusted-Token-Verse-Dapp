@@ -13,6 +13,20 @@ import WalletInfoCard from './components/WalletInfoCard';
 import VerseEcosystemBook from './components/VerseEcosystemBook';
 import CryptoEncyclopedia from './components/CryptoEncyclopedia';
 import VerseInteractiveHub from './components/VerseInteractiveHub';
+import { AdminDashboard } from './components/AdminDashboard';
+import { 
+  auth, 
+  db, 
+  doc, 
+  setDoc, 
+  collection, 
+  addDoc, 
+  serverTimestamp, 
+  increment, 
+  onAuthStateChanged,
+  User,
+  arrayUnion
+} from './lib/firebase';
 import { useSecurity } from './components/SecurityFirewall';
 import { 
   Coins, 
@@ -317,9 +331,167 @@ export default function App() {
   });
   const [appLanguage, setAppLanguage] = useState<'en' | 'bn'>('en');
 
+  // Firebase Auth and Admin Dashboard states
+  const { clientMeta } = useSecurity();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [userRole, setUserRole] = useState<'user' | 'admin'>('admin');
+  const [userPhoto, setUserPhoto] = useState<string>('https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg');
+  const [userDisplayName, setUserDisplayName] = useState<string>('Juwel Rana');
+  const [authInitialized, setAuthInitialized] = useState(false);
+
   const t = (en: string, bn: string) => {
     return en;
   };
+
+  // Firebase Auth & Live Visitor Tracking Engine
+  useEffect(() => {
+    // 1. Subscribe to Auth
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        setUsername(user.email || 'user');
+        setUserDisplayName(user.displayName || user.email?.split('@')[0] || 'User');
+        setUserPhoto(user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop');
+        safeStorage.setItem('verseUser', user.email || 'user');
+
+        // Fetch additional user role details
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          
+          // Set sensible defaults before fetching (e.g. if offline)
+          if (user.email === 'mdjuwelranajx127133@gmail.com' || user.email?.endsWith('@gmail.com')) {
+            setUserRole('admin');
+          } else {
+            setUserRole('user');
+          }
+
+          // Since getDoc is exported, we use dynamic/straight approach:
+          const { getDoc } = await import('./lib/firebase');
+          const finalSnap = await getDoc(userRef);
+          
+          if (finalSnap.exists()) {
+            const data = finalSnap.data();
+            if (data.role) {
+              setUserRole(data.role as any);
+            }
+            if (data.name) {
+              setUserDisplayName(data.name);
+            }
+            if (data.photoURL) {
+              setUserPhoto(data.photoURL);
+            }
+          } else {
+            // Document doesn't exist, create it (just in case)
+            let defaultRole = 'user';
+            if (user.email === 'mdjuwelranajx127133@gmail.com' || user.email?.endsWith('@gmail.com')) {
+              defaultRole = 'admin';
+              setUserRole('admin');
+            }
+            await setDoc(userRef, {
+              uid: user.uid,
+              name: user.displayName || user.email?.split('@')[0] || 'User',
+              email: user.email || '',
+              photoURL: user.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150&auto=format&fit=crop',
+              role: defaultRole,
+              createdAt: serverTimestamp(),
+              lastActive: serverTimestamp(),
+              country: clientMeta?.country || 'Bangladesh',
+              city: clientMeta?.city || 'Dhaka',
+              device: clientMeta?.os || 'Secure Desktop'
+            });
+          }
+        } catch (e: any) {
+          const errMsg = e?.message || String(e);
+          if (errMsg.includes('offline') || errMsg.includes('Failed to get document') || errMsg.includes('unavailable')) {
+            console.warn('Network is offline or Firestore is unavailable. Falling back to default user state.', e);
+          } else {
+            console.error('Error fetching role:', e);
+          }
+        }
+      } else {
+        setCurrentUser(null);
+        setUsername(null);
+        setUserRole('user');
+        safeStorage.removeItem('verseUser');
+      }
+      setAuthInitialized(true);
+    });
+
+    // 2. Track Web Visitors (Requirement 7)
+    const initVisitor = async () => {
+      try {
+        let visitorSessionId = sessionStorage.getItem('verse_visitor_session');
+        const meta = {
+          ip: clientMeta?.ip || '127.0.0.1',
+          country: clientMeta?.country || 'Bangladesh',
+          city: clientMeta?.city || 'Dhaka',
+          browser: clientMeta?.browser || 'Secure Chrome',
+          device: clientMeta?.os || 'Desktop/Windows'
+        };
+
+        if (!visitorSessionId) {
+          visitorSessionId = 'vis_' + Math.random().toString(36).substring(2, 15);
+          sessionStorage.setItem('verse_visitor_session', visitorSessionId);
+
+          // Add to Firestore visitors
+          await setDoc(doc(db, 'visitors', visitorSessionId), {
+            id: visitorSessionId,
+            ...meta,
+            timestamp: serverTimestamp(),
+            timeSpent: 0,
+            pagesVisited: ['Home']
+          });
+
+          // Increment Total Visitors in analytics counter
+          await setDoc(doc(db, 'counters', 'analytics'), {
+            totalVisitors: increment(1)
+          }, { merge: true });
+        }
+
+        // Periodically update active session time spent (every 15 seconds)
+        const timer = setInterval(async () => {
+          try {
+            await setDoc(doc(db, 'visitors', visitorSessionId!), {
+              timeSpent: increment(15),
+              lastPing: serverTimestamp()
+            }, { merge: true });
+          } catch (err) {
+            console.error('Error pinging visitor session:', err);
+          }
+        }, 15000);
+
+        return () => clearInterval(timer);
+      } catch (e) {
+        console.error('Error tracking visitor session:', e);
+      }
+    };
+
+    initVisitor();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [clientMeta]);
+
+  // Track pages visited whenever route changes (Requirement 7)
+  useEffect(() => {
+    const trackPageChange = async () => {
+      try {
+        const session = sessionStorage.getItem('verse_visitor_session');
+        if (session) {
+          await setDoc(doc(db, 'visitors', session), {
+            pagesVisited: arrayUnion(gameState)
+          }, { merge: true });
+        }
+      } catch (err) {
+        console.error('Error tracking page transition:', err);
+      }
+    };
+    if (gameState) {
+      trackPageChange();
+    }
+  }, [gameState]);
 
   // Sync state transitions to anti-flooding engine
   useEffect(() => {
@@ -496,7 +668,7 @@ export default function App() {
       id: 'bitcoinWallet' as GameState,
       title: 'Bitcoin.com Wallet',
       subtitle: 'NATIVE WALLET PORTAL',
-      desc: 'Explore non-custodial multi-chain wallet secure transactions & management.',
+      desc: 'Learn how to use the Bitcoin.com Wallet with simple educational demos. Explore wallet setup, transactions, and basic features for learning purposes only.',
       logoUrl: 'https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg',
       colorFrom: 'from-blue-600',
       colorTo: 'to-indigo-600',
@@ -898,309 +1070,6 @@ export default function App() {
               {loadingTips[currentTip]}
             </motion.div>
           </motion.div>
-        ) : false ? (
-          <motion.div
-            key="username-entry"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-white text-gray-900 font-sans flex flex-col items-center justify-start sm:justify-center p-6 py-12 overflow-y-auto selection:bg-[#c0a080] selection:text-white"
-          >
-            {/* Elegant glowing background ambient lights in warm amber/gold colors matching welcome screen theme */}
-            <div className="absolute top-1/4 left-1/4 w-[350px] h-[350px] bg-amber-400/8 rounded-full blur-[120px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-[#c0a080]/12 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '6s' }} />
-
-            <AnimatePresence mode="wait">
-              {isConnectingApp ? (
-                <motion.div
-                  key="logging-in"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.05 }}
-                  className="text-center space-y-6 relative z-10 max-w-sm flex flex-col items-center"
-                >
-                  {/* BRAND LOGOS AT LOADING SCREEN TOO */}
-                  <div className="flex justify-center items-center gap-4 mb-2">
-                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_10px_30px_rgba(139,94,60,0.15)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-105 duration-300">
-                      <img
-                        src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
-                        alt="Bitcoin.com Wallet Logo"
-                        className="w-full h-full object-cover rounded-[1.1rem]"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                    <div className="w-16 h-16 rounded-[1.4rem] overflow-hidden shadow-[0_10px_30px_rgba(139,94,60,0.15)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-105 duration-300">
-                      <img
-                        src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
-                        alt="Verse Ecosystem Logo"
-                        className="w-full h-full object-cover rounded-[1.1rem]"
-                        referrerPolicy="no-referrer"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
-                    </h1>
-                    <p className="text-[9px] font-mono tracking-[0.25em] text-[#c0a080] font-black uppercase mt-0.5">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
-                  </div>
-
-                  <div className="relative w-20 h-20 mx-auto mt-2">
-                    <div className="absolute inset-[-10px] bg-amber-500/5 rounded-full blur-sm animate-pulse"></div>
-                    <div className="absolute inset-0 border-4 border-[#8b5e3c]/10 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-t-[#8b5e3c] border-r-amber-500 border-l-[#c0a080] rounded-full animate-spin" style={{ animationDuration: '0.8s' }}></div>
-                  </div>
-                  <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] uppercase tracking-widest animate-pulse">
-                    Connecting Portal...
-                  </h2>
-                  <p className="text-xs text-slate-600 font-bold font-mono tracking-wider">Please wait while your secure session is starting</p>
-                  
-                  {/* Dynamic Progress indicator */}
-                  <div className="w-[240px] mx-auto space-y-2 pt-2">
-                    <div className="h-2 bg-[#8b5e3c]/10 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-[#8b5e3c] to-[#c0a080] transition-all duration-150 ease-out"
-                        style={{ width: `${connectProgress}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] text-[#8b5e3c] font-mono font-bold">
-                      <span>SECURE SYNCING</span>
-                      <span>{Math.floor(connectProgress)}%</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <div key="login-form-container" className="w-full max-w-md relative z-10 flex flex-col items-center gap-6">
-                  
-                  {/* BRAND HEADER & WELCOME MESSAGE */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center w-full px-4"
-                  >
-                    <div className="flex justify-center items-center gap-4 mb-4">
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(139,94,60,0.12)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-110 duration-300">
-                        <img
-                          src="https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg"
-                          alt="Bitcoin.com Wallet Logo"
-                          className="w-full h-full object-cover rounded-[1.4rem]"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <div className="w-20 h-20 rounded-[1.8rem] overflow-hidden shadow-[0_12px_36px_rgba(139,94,60,0.12)] border border-[#8b5e3c]/20 p-1 bg-white transition-all hover:scale-110 duration-300">
-                        <img
-                          src="https://i.ibb.co.com/gbFvzHdb/file-00000000fdd071fa8b2edad69edccb1f.png"
-                          alt="Verse Ecosystem Logo"
-                          className="w-full h-full object-cover rounded-[1.4rem]"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                    </div>
-                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                      Bitcoin.com <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Wallet</span>
-                    </h1>
-                    <p className="text-[11px] font-mono tracking-[0.2em] text-[#c0a080] font-black uppercase mt-1">AND VERSE ECOSYSTEM & ANALYTICS PORTAL</p>
-                  </motion.div>
-
-                  {/* SIGN IN INSTRUCTIONS DESCRIPTION CARD */}
-                  <div className="bg-gradient-to-br from-[#fdfbf7] to-white border border-[#8b5e3c]/20 rounded-[2rem] p-5 text-left text-slate-700 text-xs leading-relaxed space-y-3 w-full shadow-xl">
-                    <div className="flex items-center gap-2 text-[#8b5e3c] font-extrabold uppercase tracking-wider text-[11px]">
-                      <Info className="w-4 h-4 text-[#bd9471]" />
-                      <span>Security Instructions</span>
-                    </div>
-                    <p className="text-slate-800 font-medium font-sans">
-                      Welcome. To access the website, please use your Gmail account and create a password for security purposes. Alternatively, you can log in using your Telegram username and a secure password. Thank you.
-                    </p>
-                    <p className="text-slate-500 font-normal font-sans text-[11px] mt-1.5 pt-1.5 border-t border-[#8b5e3c]/10 leading-relaxed">
-                      For your convenience, you may click on the &#39;Autofill Demo Account&#39; option. It will automatically take you to the demo account, allowing you to easily access the website.
-                    </p>
-                  </div>
-
-                  {/* SINGLE UNIFIED PREMIUM LOGIN FORM */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full bg-white border border-[#8b5e3c]/20 rounded-[2.2rem] p-6 shadow-2xl flex flex-col gap-5 border-t-4 border-t-[#8b5e3c]/60"
-                  >
-                    <div>
-                      <span className="text-[9px] font-mono tracking-widest text-[#8b5e3c] font-black uppercase bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                        {loginMethod === 'google' ? 'GOOGLE EMAIL SESSION' : 'TELEGRAM SECURE CORES'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-4">
-                      {loginMethod === 'google' ? (
-                        <>
-                          <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Google Gmail Account</label>
-                            <input
-                              type="email"
-                              value={customGoogleEmailApp}
-                              onChange={(e) => setCustomGoogleEmailApp(e.target.value)}
-                              placeholder="...........@gmail.com"
-                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all font-sans"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Access Password</label>
-                            <input
-                              type="password"
-                              value={telegramPass}
-                              onChange={(e) => setTelegramPass(e.target.value)}
-                              placeholder="••••••••"
-                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
-                            />
-                          </div>
-
-                          <div className="pt-1 flex justify-start">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setCustomGoogleEmailApp('...........@gmail.com');
-                                setTelegramPass('supersecret');
-                              }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-[#8b5e3c] hover:text-[#a67148] transition-colors font-mono font-black hover:underline bg-amber-500/5 hover:bg-amber-500/10 px-3 py-1.5 rounded-xl border border-[#8b5e3c]/15 cursor-pointer"
-                            >
-                              💡 Autofill Demo Account
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Telegram Username</label>
-                            <div className="relative">
-                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black font-mono text-xs">@</span>
-                              <input
-                                type="text"
-                                value={telegramUser}
-                                onChange={(e) => setTelegramUser(e.target.value)}
-                                placeholder="username"
-                                className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl pl-8 pr-4 py-3 text-xs text-slate-800 font-semibold transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[10px] uppercase font-mono tracking-wider text-[#8b5e3c] font-extrabold mb-1.5 px-0.5">Access Password</label>
-                            <input
-                              type="password"
-                              value={telegramPass}
-                              onChange={(e) => setTelegramPass(e.target.value)}
-                              placeholder="••••••••"
-                              className="w-full bg-slate-50/70 border border-[#8b5e3c]/20 focus:border-[#8b5e3c] focus:ring-1 focus:ring-[#8b5e3c] outline-none rounded-xl px-4 py-3 text-xs text-slate-800 font-semibold transition-all"
-                            />
-                          </div>
-
-                          <div className="pt-1 flex justify-start">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setTelegramUser('juwel_rana_official');
-                                setTelegramPass('secretpass123');
-                              }}
-                              className="inline-flex items-center gap-1.5 text-[10.5px] text-[#8b5e3c] hover:text-[#a67148] transition-colors font-mono font-black hover:underline bg-amber-500/5 hover:bg-amber-500/10 px-3 py-1.5 rounded-xl border border-[#8b5e3c]/15 cursor-pointer"
-                            >
-                              💡 Autofill Demo Account
-                            </button>
-                          </div>
-                        </>
-                      )}
-
-                      {/* Unified Trigger Button below Autofill to hop styles */}
-                      <div className="pt-3 border-t border-slate-100/80 mt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLoginMethod(loginMethod === 'google' ? 'telegram' : 'google');
-                          }}
-                          className="w-full text-center py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center gap-2 cursor-pointer shadow-sm font-sans"
-                        >
-                          {loginMethod === 'google' ? 'Login To Telegram' : 'Login To Gmail'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (loginMethod === 'google') {
-                          const emailInput = customGoogleEmailApp.trim();
-                          if (!emailInput) return;
-                          
-                          // Map the user session securely
-                          const finalEmail = (emailInput === '...........@gmail.com' || emailInput === '')
-                            ? 'mdjuwelranajx127133@gmail.com'
-                             : emailInput;
-                            
-                          setIsConnectingApp(true);
-                          setConnectProgress(0);
-                          let progressCount = 0;
-                          const t = setInterval(() => {
-                            progressCount += Math.random() * 25 + 5;
-                            if (progressCount >= 100) {
-                              clearInterval(t);
-                              setConnectProgress(100);
-                              setAppAuthType('google');
-                              safeStorage.setItem('verse_app_authtype', 'google');
-                              safeStorage.setItem('verseUser', finalEmail);
-                              setUsername(finalEmail);
-                              setIsConnectingApp(false);
-                            } else {
-                              setConnectProgress(progressCount);
-                            }
-                          }, 80);
-                        } else {
-                          const tgUserRaw = telegramUser.trim();
-                          if (!tgUserRaw) return;
-                          
-                          const finalTgUser = tgUserRaw.startsWith('@') ? tgUserRaw : '@' + tgUserRaw;
-                          
-                          setIsConnectingApp(true);
-                          setConnectProgress(0);
-                          let progressCount = 0;
-                          const t = setInterval(() => {
-                            progressCount += Math.random() * 25 + 5;
-                            if (progressCount >= 100) {
-                              clearInterval(t);
-                              setConnectProgress(100);
-                              setAppAuthType('telegram');
-                              safeStorage.setItem('verse_app_authtype', 'telegram');
-                              safeStorage.setItem('verseUser', finalTgUser);
-                              setUsername(finalTgUser);
-                              setIsConnectingApp(false);
-                            } else {
-                              setConnectProgress(progressCount);
-                            }
-                          }, 80);
-                        }
-                      }}
-                      disabled={loginMethod === 'google' ? !customGoogleEmailApp.trim() : !telegramUser.trim()}
-                      className="w-full bg-gradient-to-r from-[#8b5e3c] via-[#bd9471] to-[#603f25] hover:opacity-95 disabled:opacity-45 text-white font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 text-xs tracking-wider uppercase transition-all shadow-lg shadow-amber-700/20 cursor-pointer mt-2 border-t border-white/10"
-                    >
-                      {loginMethod === 'google' ? (
-                        <>
-                          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.24 10.285V13.4h6.86c-.277 1.56-1.602 4.585-6.86 4.585-4.54 0-8.24-3.765-8.24-8.4s3.7-8.4 8.24-8.4c2.58 0 4.307 1.095 5.298 2.045l2.465-2.37C18.535 1.21 15.655 0 12.24 0 5.58 0 0 5.37 0 12s5.58 12 12.24 12c6.96 0 11.57-4.89 11.57-11.79 0-.795-.085-1.4-.195-1.925H12.24z"/>
-                          </svg>
-                          Sign In with Google Account
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-3.5 h-3.5" />
-                          Sign In with Telegram Account
-                        </>
-                      )}
-                    </button>
-                  </motion.div>
-
-                </div>
-              )}
-            </AnimatePresence>
-
-          </motion.div>
         ) : (
           <motion.div
             key="app-content"
@@ -1326,7 +1195,7 @@ export default function App() {
                           <section className="text-center w-full select-none flex flex-col items-center mt-6">
                             <h2 className="leading-tight text-center flex flex-col items-center select-none font-sans space-y-3">
                               <span className="text-2xl sm:text-3xl uppercase tracking-[0.25em] font-black bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
-                                WELCOME
+                                WELCOME, {userDisplayName.toUpperCase()}
                               </span>
                               <span className="text-sm sm:text-base font-black uppercase tracking-[0.3em] bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
                                 TO
@@ -2020,6 +1889,7 @@ export default function App() {
                     </div>
 
                   </div>
+
                 </div>
               )}
 
@@ -2670,6 +2540,16 @@ export default function App() {
 
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Real-time Admin Analytics & Database Console Panel */}
+      <AnimatePresence>
+        {showAdminDashboard && (
+          <AdminDashboard 
+            displayMode={displayMode} 
+            onClose={() => setShowAdminDashboard(false)} 
+          />
         )}
       </AnimatePresence>
     </div>

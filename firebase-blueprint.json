@@ -1,0 +1,78 @@
+{
+  "collections": {
+    "users": {
+      "description": "User accounts and roles",
+      "fields": {
+        "uid": "string",
+        "name": "string",
+        "email": "string",
+        "photoURL": "string",
+        "createdAt": "timestamp",
+        "lastActive": "timestamp",
+        "role": "string"
+      }
+    },
+    "logins": {
+      "description": "Log of successful user login sessions",
+      "fields": {
+        "userId": "string",
+        "name": "string",
+        "email": "string",
+        "loginTime": "timestamp",
+        "logoutTime": "timestamp",
+        "ip": "string",
+        "country": "string",
+        "city": "string",
+        "device": "string",
+        "browser": "string"
+      }
+    },
+    "visitors": {
+      "description": "Anonymous and authenticated website session logs",
+      "fields": {
+        "visitorId": "string",
+        "country": "string",
+        "city": "string",
+        "ip": "string",
+        "device": "string",
+        "browser": "string",
+        "timestamp": "timestamp",
+        "timeSpent": "number",
+        "pagesVisited": "array"
+      }
+    },
+    "counters": {
+      "description": "Aggregated statistics for admin dashboard",
+      "fields": {
+        "totalVisitors": "number",
+        "totalMembers": "number"
+      }
+    },
+    "quiz_events": {
+      "description": "Weekly quiz events published by admin",
+      "fields": {
+        "id": "string",
+        "title": "string",
+        "question": "string",
+        "options": "array",
+        "correctOption": "string",
+        "endsAt": "timestamp",
+        "rewardPool": "string",
+        "createdAt": "timestamp"
+      }
+    },
+    "quiz_submissions": {
+      "description": "Weekly quiz answers and registrations submitted by users",
+      "fields": {
+        "walletAddress": "string",
+        "telegramUsername": "string",
+        "displayName": "string",
+        "submittedAnswer": "string",
+        "submittedAt": "timestamp",
+        "eventId": "string",
+        "isWinner": "boolean",
+        "rewardStatus": "string"
+      }
+    }
+  }
+}
