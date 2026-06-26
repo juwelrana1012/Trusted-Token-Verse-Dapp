@@ -1195,7 +1195,7 @@ export default function App() {
                           <section className="text-center w-full select-none flex flex-col items-center mt-6">
                             <h2 className="leading-tight text-center flex flex-col items-center select-none font-sans space-y-3">
                               <span className="text-2xl sm:text-3xl uppercase tracking-[0.25em] font-black bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
-                                WELCOME, {userDisplayName.toUpperCase()}
+                                WELCOME
                               </span>
                               <span className="text-sm sm:text-base font-black uppercase tracking-[0.3em] bg-[linear-gradient(to_right,#3B82F6,#6366F1,#8B5CF6,#A855F7,#D946EF)] bg-clip-text text-transparent filter drop-shadow-[0_1px_4px_rgba(139,92,246,0.15)]">
                                 TO
