@@ -14,6 +14,8 @@ import VerseEcosystemBook from './components/VerseEcosystemBook';
 import CryptoEncyclopedia from './components/CryptoEncyclopedia';
 import VerseInteractiveHub from './components/VerseInteractiveHub';
 import { AdminDashboard } from './components/AdminDashboard';
+// @ts-ignore
+import versemindLogo from './assets/images/versemind_logo_1782626094540.jpg';
 import { 
   auth, 
   db, 
@@ -113,7 +115,7 @@ const safeStorage = {
 };
 
 // --- Types ---
-type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook' | 'cryptoEncyclopedia' | 'verseInteractiveHub' | 'verseCommunityHub' | 'ecosystemActivityLog' | 'ourVerseCommunity';
+type GameState = 'home' | 'clicker' | 'quiz' | 'wallet' | 'bitcoinWallet' | 'cryptoHistory' | 'claimReward' | 'ecosystemBook' | 'cryptoEncyclopedia' | 'verseInteractiveHub' | 'verseCommunityHub' | 'ecosystemActivityLog' | 'ourVerseCommunity' | 'verseMindAssistant';
 
 interface Token {
   id: string;
@@ -665,6 +667,17 @@ export default function App() {
 
   const navigationTopics = [
     {
+      id: 'verseMindAssistant' as GameState,
+      title: 'VerseMind Assistant',
+      subtitle: 'AI COGNITIVE COMPANION',
+      desc: 'Your intelligent AI assistant for everyday life, learning, and problem solving. Powered by Gemini.',
+      logoUrl: versemindLogo,
+      colorFrom: 'from-violet-600',
+      colorTo: 'to-fuchsia-600',
+      tag: 'AI ASSISTANT',
+      glow: 'rgba(139, 92, 246, 0.4)'
+    },
+    {
       id: 'bitcoinWallet' as GameState,
       title: 'Bitcoin.com Wallet',
       subtitle: 'NATIVE WALLET PORTAL',
@@ -791,7 +804,9 @@ export default function App() {
         setTimeout(() => {
           setIsNavigatingTopic(false);
           
-          if (targetState === 'cryptoHistory') {
+          if (targetState === 'verseMindAssistant') {
+            window.location.href = 'https://versemind-assistant.vercel.app';
+          } else if (targetState === 'cryptoHistory') {
             window.location.href = 'https://crypto-founder-history.vercel.app';
           } else if (targetState === 'cryptoEncyclopedia') {
             window.location.href = 'https://crypto-encyclopedia.vercel.app';
