@@ -666,7 +666,7 @@ export default function App() {
   const navigationTopics = [
     {
       id: 'bitcoinWallet' as GameState,
-      title: 'Bitcoin.com Wallet',
+      title: 'Bitcoin.com wallet Learning Hub',
       subtitle: 'NATIVE WALLET PORTAL',
       desc: 'Learn how to use the Bitcoin.com Wallet with simple educational demos. Explore wallet setup, transactions, and basic features for learning purposes only.',
       logoUrl: 'https://i.ibb.co.com/bRMwqvJz/IMG-20260530-154814.jpg',
@@ -788,28 +788,26 @@ export default function App() {
       setTopicLoadingProgress(Math.min(progressVal, 100));
       if (progressVal >= 100) {
         clearInterval(interval);
-        setTimeout(() => {
-          setIsNavigatingTopic(false);
-          
-          if (targetState === 'cryptoHistory') {
-            window.location.href = 'https://crypto-founder-history.vercel.app';
-          } else if (targetState === 'cryptoEncyclopedia') {
-            window.location.href = 'https://crypto-encyclopedia.vercel.app';
-          } else if (targetState === 'verseInteractiveHub') {
-            window.location.href = 'https://verse-interactive-hub.vercel.app';
-          } else if (targetState === 'ourVerseCommunity' as GameState) {
-            window.location.href = 'https://our-verse-community.vercel.app';
-          } else if (targetState === 'bitcoinWallet') {
-            window.location.href = 'https://bitcoin-com-wallet-inspired-demo.vercel.app';
-          } else {
-            setGameState(targetState);
-            if (targetState === 'home') {
-              setHomeSubState('features');
-            }
+        setIsNavigatingTopic(false);
+        
+        if (targetState === 'cryptoHistory') {
+          window.location.href = 'https://crypto-founder-history.vercel.app';
+        } else if (targetState === 'cryptoEncyclopedia') {
+          window.location.href = 'https://crypto-encyclopedia.vercel.app';
+        } else if (targetState === 'verseInteractiveHub') {
+          window.location.href = 'https://verse-interactive-hub.vercel.app';
+        } else if (targetState === 'ourVerseCommunity' as GameState) {
+          window.location.href = 'https://our-verse-community.vercel.app';
+        } else if (targetState === 'bitcoinWallet') {
+          window.location.href = 'https://bitcoin-com-wallet-inspired-demo.vercel.app';
+        } else {
+          setGameState(targetState);
+          if (targetState === 'home') {
+            setHomeSubState('features');
           }
-        }, 150);
+        }
       }
-    }, 120);
+    }, 100);
   };
 
   const [focusSlideIndex, setFocusSlideIndex] = useState<number>(() => {
@@ -968,7 +966,7 @@ export default function App() {
         </div>
       )}
 
-      {/* PREMIUM TOPIC NAVIGATION LOADING OVERLAY WITH PALETTE (Mint Green, Aqua, Sky Blue, Royal Blue) */}
+      {/* MINIMAL WHITE TOPIC NAVIGATION LOADING OVERLAY WITH NAVY BLUE CIRCULAR LOADER */}
       <AnimatePresence>
         {isNavigatingTopic && (
           <motion.div
@@ -976,45 +974,14 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10002] bg-slate-950/95 flex flex-col items-center justify-center p-6 text-white backdrop-blur-xl"
+            className="fixed inset-0 z-[10002] bg-white flex flex-col items-center justify-center p-6"
           >
-            {/* Ambient gradients */}
-            <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
-
-            <div className="max-w-md w-full text-center space-y-6 relative z-10 px-4">
-              <span className="text-[10px] font-mono tracking-[0.3em] text-[#3cd070] font-black uppercase bg-[#3cd070]/10 px-3 py-1.5 rounded-full border border-[#3cd070]/20 animate-pulse">
-                INITIALIZING SECURE PORTAL CONSOLE
+            {/* Elegant Small Navy Blue Circular Loader */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-10 h-10 border-4 border-slate-100 border-t-[#0B1528] rounded-full animate-spin" />
+              <span className="text-xs font-mono font-bold text-[#0B1528] uppercase tracking-widest animate-pulse">
+                Loading...
               </span>
-              
-              <div className="space-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white uppercase">
-                  {navigatingTopicName}
-                </h2>
-                <p className="text-xs text-slate-450 font-mono">Syncing secure blocks, datasets and visual charts...</p>
-              </div>
-
-              {/* Glowing High-Tech Double Spinner */}
-              <div className="relative w-24 h-24 mx-auto my-8">
-                <div className="absolute inset-0 border-4 border-slate-900 rounded-full"></div>
-                <div className="absolute inset-0 border-4 border-t-blue-600 border-r-[#3cd070] rounded-full animate-spin" style={{ animationDuration: '1.2s' }}></div>
-                <div className="absolute inset-[8px] border-4 border-t-cyan-400 border-l-teal-300 rounded-full animate-spin" style={{ animationDuration: '0.8s', animationDirection: 'reverse' }}></div>
-                <div className="absolute inset-[16px] border-2 border-t-sky-400 rounded-full animate-pulse"></div>
-              </div>
-
-              {/* High-Fidelity progress tracer */}
-              <div className="space-y-2.5 max-w-xs mx-auto">
-                <div className="h-2 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
-                  <div 
-                    className="h-full rounded-full bg-gradient-to-r from-[#3cd070] via-cyan-400 via-sky-400 to-blue-600 transition-all duration-150 ease-out shadow-[0_0_15px_rgba(6,182,212,0.6)]"
-                    style={{ width: `${topicLoadingProgress}%` }}
-                  />
-                </div>
-                <div className="flex justify-between items-center text-[10px] text-slate-450 font-mono font-black uppercase tracking-wider">
-                  <span className="animate-pulse">DECRYPTING PROTOCOL</span>
-                  <span className="text-white">{Math.floor(topicLoadingProgress)}%</span>
-                </div>
-              </div>
             </div>
           </motion.div>
         )}
@@ -1343,8 +1310,25 @@ export default function App() {
                           initial={{ opacity: 0, y: 15 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -15 }}
-                          className="space-y-8"
+                          className="space-y-8 w-full max-w-6xl mx-auto"
                         >
+                          {/* LARGE CENTERED TOP LOGO */}
+                          <div className="flex flex-col items-center justify-center pt-2 pb-4 text-center w-full select-none">
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.6 }}
+                              className="flex flex-col items-center justify-center"
+                            >
+                              <img 
+                                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
+                                alt="Verse Featured Centered Logo" 
+                                className="w-48 sm:w-56 h-auto object-contain drop-shadow-[0_8px_30px_rgba(139,94,60,0.12)] hover:scale-105 transition-transform duration-300"
+                                referrerPolicy="no-referrer"
+                              />
+                            </motion.div>
+                          </div>
+
                           {/* TOPICS / PORTALS WEB GRID */}
                           <div className="space-y-6 pt-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1358,14 +1342,14 @@ export default function App() {
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleTopicNavigation(topic.id, topic.title)}
-                                    className={`flex flex-col text-left p-6 rounded-[2rem] transition-all duration-300 group cursor-pointer relative overflow-hidden shadow-md ${
+                                    className={`flex flex-col text-left p-6 rounded-[24px] transition-all duration-300 group cursor-pointer relative overflow-hidden shadow-md ${
                                       displayMode === 'dark' 
-                                        ? 'bg-[#1C1C1E] hover:bg-[#2C2C2E]/40 border border-[#2C2C2E] hover:border-[#8B5CF6]/50 shadow-black/30' 
-                                        : 'bg-white hover:bg-slate-50/50 border border-slate-200/60 hover:border-[#8B5CF6]/40 shadow-slate-900/[0.02]'
+                                        ? 'bg-[#1C1C1E] hover:bg-[#2C2C2E]/60 border border-[#2C2C2E] hover:border-violet-500/70 shadow-black/40 shadow-lg' 
+                                        : 'bg-white hover:bg-slate-50/60 border border-slate-200 hover:border-indigo-500/60 shadow-slate-900/[0.04] shadow-md'
                                     }`}
                                   >
-                                    {/* Top Horizontal Accent Line with the 5-Color Gradient */}
-                                    <div className="absolute top-0 left-0 right-0 h-[3px] opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: 'linear-gradient(to right, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
+                                    {/* Left Vertical Accent Line with the 5-Color Gradient */}
+                                    <div className="absolute left-0 top-0 bottom-0 w-[4px] opacity-70 group-hover:opacity-100 transition-opacity" style={{ backgroundImage: 'linear-gradient(to bottom, #3B82F6, #6366F1, #8B5CF6, #A855F7, #D946EF)' }} />
 
                                     {/* Accent background glow based on the topic theme */}
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#8B5CF6]/5 to-[#D946EF]/5 rounded-full blur-2xl pointer-events-none" />
@@ -1493,144 +1477,144 @@ export default function App() {
       </main>
 
       {(gameState === 'home' && homeSubState === 'features') && (
-        <>
-          {/* LARGE CENTERED BOTTOM LOGO */}
-          <div className="flex flex-col items-center justify-center py-10 pb-8 text-center w-full relative z-10 select-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="group flex flex-col items-center justify-center"
-            >
-              <img 
-                src="https://i.ibb.co.com/DPxxnS6F/file-00000000fdd071fa8b2edad69edccb1f.png" 
-                alt="Verse Featured Centered Logo" 
-                className="w-64 sm:w-80 h-auto object-contain transition-all duration-500 drop-shadow-[0_12px_40px_rgba(139,94,60,0.2)] group-hover:drop-shadow-[0_20px_50px_rgba(139,94,60,0.45)] group-hover:scale-105 active:scale-98"
-                referrerPolicy="no-referrer"
-              />
-            </motion.div>
-          </div>
+        <footer className="w-full max-w-4xl mx-auto mt-16 px-6 relative z-10 select-none pb-12">
+          <div className="w-full border-t border-slate-200/60 dark:border-[#2C2C2E] pt-12 pb-12 bg-gradient-to-b from-slate-900 to-slate-950 text-gray-200 rounded-[2rem] overflow-hidden shadow-2xl relative">
+            {/* Elegant glowing backdrop accent inside the footer */}
+            <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#8B5CF6]/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute top-0 left-0 w-80 h-80 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
 
-          {/* EDUCATIONAL FOOTER SUMMARY CARD WITH ENGLISH/BENGALI TRANSLATION */}
-          <div className="max-w-4xl mx-auto px-6 mb-16 relative z-10">
-            <div className={`border rounded-[2.5rem] p-8 sm:p-10 shadow-xl relative overflow-hidden transition-all hover:shadow-2xl ${
-              displayMode === 'dark' ? 'bg-[#1C1C1E] border-[#2C2C2E]' : 'bg-white border-gray-100'
-            }`}>
-              {/* Background gradient embellishment */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-teal-500/5 to-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-              
-              <div className="relative z-10 space-y-6">
-                {/* Header Row */}
-                <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6 ${
-                  displayMode === 'dark' ? 'border-[#2C2C2E]' : 'border-gray-50'
-                }`}>
-                  <div>
-                    <h3 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-teal-600 via-emerald-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-tight">
-                      {footerDescLang === 'en' ? 'What can you learn from our website?' : 'আমাদের ওয়েবসাইট থেকে আপনি কী কী শিখতে পারবেন?'}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-mono mt-1 uppercase tracking-wider">
-                      {footerDescLang === 'en' ? 'Interactive Learning Platform Guide' : 'ইন্টারেক্টিভ লার্নিং প্ল্যাটফর্ম সহায়িকা'}
-                    </p>
-                  </div>
-                  
-                  {/* Language Switcher Toggle */}
-                  <div className={`flex items-center gap-1.5 self-start sm:self-auto p-1.5 rounded-2xl border ${
-                    displayMode === 'dark' ? 'bg-black/60 border-[#2C2C2E]' : 'bg-slate-50 border-slate-100'
-                  }`}>
-                    <button
-                      onClick={() => setFooterDescLang('en')}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                        footerDescLang === 'en'
-                          ? (displayMode === 'dark' ? 'bg-[#2C2C2E] text-[#007AFF] shadow-sm border border-[#2C2C2E]' : 'bg-white text-teal-600 shadow-sm border border-gray-100')
-                          : (displayMode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')
-                      }`}
-                    >
-                      🇬🇧 English
-                    </button>
-                    <button
-                      onClick={() => setFooterDescLang('bn')}
-                      className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                        footerDescLang === 'bn'
-                          ? (displayMode === 'dark' ? 'bg-[#2C2C2E] text-[#007AFF] shadow-sm border border-[#2C2C2E]' : 'bg-white text-teal-600 shadow-sm border border-gray-100')
-                          : (displayMode === 'dark' ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900')
-                      }`}
-                    >
-                      🇧🇩 বাংলা
-                    </button>
-                  </div>
+            <div className="max-w-4xl mx-auto px-8 sm:px-10 grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 text-left">
+              {/* Col 1: Brand & Socials */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <img
+                    src="https://i.ibb.co.com/cSX4SpFC/file-00000000fdd071fa8b2edad69edccb1f.png"
+                    alt="Verse logo"
+                    className="w-8 h-8 object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                  <span className="text-lg font-black tracking-widest uppercase text-white font-sans">VERSE</span>
                 </div>
-
-                {/* Spaced Out Text Content ("একটু ফাঁকা ফাঁকা করে লেখবা") */}
-                <div className={`text-sm sm:text-base leading-relaxed space-y-6 font-medium transition-all duration-300 ${
-                  displayMode === 'dark' ? 'text-gray-300' : 'text-slate-600'
-                }`}>
-                  {!footerDescExpanded ? (
-                    // Show first paragraph as summary
-                    <p className="first-letter:text-3xl first-letter:font-black first-letter:text-teal-600 first-letter:mr-2 first-letter:float-left">
-                      {footerDescLang === 'en' ? FOOTER_LEARN_EN[0] : FOOTER_LEARN_BN[0]}
-                    </p>
-                  ) : (
-                    // Show everything beautifully mapped with gap
-                    (footerDescLang === 'en' ? FOOTER_LEARN_EN : FOOTER_LEARN_BN).map((para, pIdx) => {
-                      // Check if it contains bullet points to render nicely as lists
-                      if (para.includes('•')) {
-                        const lines = para.split('\n');
-                        const listTitle = lines[0];
-                        const bullets = lines.slice(1);
-                        return (
-                          <div key={pIdx} className={`space-y-3 p-6 rounded-2xl my-4 border ${
-                            displayMode === 'dark' ? 'bg-teal-950/15 border-teal-500/20 text-gray-300' : 'bg-teal-50/20 border-teal-500/5 text-slate-600'
-                          }`}>
-                            <p className={`font-bold ${displayMode === 'dark' ? 'text-teal-400' : 'text-slate-800'}`}>{listTitle}</p>
-                            <ul className={`space-y-2 pl-4 sm:pl-6 ${displayMode === 'dark' ? 'text-gray-300' : 'text-slate-600'}`}>
-                              {bullets.map((b, bIdx) => (
-                                <li key={bIdx} className="flex items-start gap-2 text-sm sm:text-base">
-                                  <span className="text-teal-500 font-bold mt-0.5">•</span>
-                                  <span>{b.replace('•', '').trim()}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      }
-                      return (
-                        <p key={pIdx} className={`${pIdx === 0 ? 'first-letter:text-3xl first-letter:font-black first-letter:text-teal-600 first-letter:mr-2 first-letter:float-left' : ''}`}>
-                          {para}
-                        </p>
-                      );
-                    })
-                  )}
-                </div>
-
-                {/* Detail Toggle Action Buttons */}
-                <div className="flex justify-center pt-2">
-                  <button
-                    onClick={() => setFooterDescExpanded(!footerDescExpanded)}
-                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-600 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-95 transition-all text-sm cursor-pointer"
+                <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
+                  Educating, empowering, and guiding people in understanding cryptocurrency and blockchain technology through realistic, interactive simulated dashboards.
+                </p>
+                <div className="flex items-center gap-3 pt-2">
+                  {/* Twitter / X Link */}
+                  <a
+                    href="https://x.com/VerseEcosystem"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 bg-slate-850 hover:bg-indigo-600 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95 text-white shadow-md"
                   >
-                    {footerDescExpanded ? (
-                      <>
-                        <span>{footerDescLang === 'en' ? 'Show Less' : 'কম বিস্তারিত দেখান'}</span>
-                        <ChevronUp className="w-4 h-4 text-white/90" />
-                      </>
-                    ) : (
-                      <>
-                        <span>{footerDescLang === 'en' ? 'More Details' : 'আরও বিস্তারিত'}</span>
-                        <ChevronDown className="w-4 h-4 text-white/90" />
-                      </>
-                    )}
-                  </button>
+                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                  {/* Telegram Link */}
+                  <a
+                    href="https://t.me/GetVerse"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 bg-slate-850 hover:bg-blue-500 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95 text-white shadow-md"
+                  >
+                    <Send className="w-4 h-4" />
+                  </a>
                 </div>
               </div>
+
+              {/* Col 2: Community Portals */}
+              <div className="space-y-4">
+                <span className="block text-[11px] font-mono font-extrabold tracking-[0.2em] text-[#c0a080] uppercase">
+                  Community Portals
+                </span>
+                <ul className="space-y-2.5 text-xs font-semibold">
+                  <li>
+                    <a
+                      href="https://t.me/GetVerse"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Official Telegram Community</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://our-verse-community.vercel.app"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Our Verse Community Site</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://verse-interactive-hub.vercel.app"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Verse Interactive Hub</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 3: Ecosystem Resources */}
+              <div className="space-y-4">
+                <span className="block text-[11px] font-mono font-extrabold tracking-[0.2em] text-[#c0a080] uppercase">
+                  Ecosystem Resources
+                </span>
+                <ul className="space-y-2.5 text-xs font-semibold">
+                  <li>
+                    <a
+                      href="https://wallet.bitcoin.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Bitcoin.com Official Wallet</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://verse.bitcoin.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Verse Official Platform</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://verse.bitcoin.com/pdf/verse-whitepaper.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
+                    >
+                      <span>Verse Whitepaper Doc</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom Copyright Area */}
+            <div className="max-w-4xl mx-auto px-8 sm:px-10 mt-10 pt-6 border-t border-slate-800 text-center text-[10px] text-slate-500 font-mono">
+              <p className="uppercase tracking-[0.15em]">
+                &copy; 2026 Verse Community &bull; Decentralized Hub &bull; All Rights Reserved
+              </p>
             </div>
           </div>
-
-          <footer className="max-w-4xl mx-auto px-6 py-12 border-t border-gray-100 mt-12 text-center text-gray-400">
-            <p className="text-sm font-mono uppercase tracking-[0.2em]">
-              &copy; 2026 Verse Community &bull; Decentralized Hub
-            </p>
-          </footer>
-        </>
+        </footer>
       )}
           </motion.div>
         )}
